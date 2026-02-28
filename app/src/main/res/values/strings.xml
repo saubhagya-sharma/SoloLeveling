@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">Solo Leveling</string>
+    <string name="simulate_workout">Simulate Workout</string>
+
+    <string name="player_name_placeholder">Player: -</string>
+    <string name="overall_level_placeholder">Overall Level: -</string>
+    <string name="strength_level_placeholder">Strength Level: -</string>
+    <string name="endurance_level_placeholder">Endurance Level: -</string>
+    <string name="stamina_level_placeholder">Stamina Level: -</string>
+    <string name="discipline_level_placeholder">Discipline Level: -</string>
+
+    <string name="player_name_format">Player: %1$s</string>
+    <string name="overall_level_format">Overall Level: %1$d</string>
+    <string name="strength_level_format">Strength Level: %1$d</string>
+    <string name="endurance_level_format">Endurance Level: %1$d</string>
+    <string name="stamina_level_format">Stamina Level: %1$d</string>
+    <string name="discipline_level_format">Discipline Level: %1$d</string>
 </resources>
