@@ -32,12 +32,26 @@
             android:layout_marginTop="16dp"
             android:text="@string/strength_level_placeholder" />
 
+        <ProgressBar
+            android:id="@+id/progress_strength"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
         <TextView
             android:id="@+id/text_endurance_level"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/endurance_level_placeholder" />
+
+        <ProgressBar
+            android:id="@+id/progress_endurance"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
 
         <TextView
             android:id="@+id/text_stamina_level"
@@ -46,12 +60,26 @@
             android:layout_marginTop="8dp"
             android:text="@string/stamina_level_placeholder" />
 
+        <ProgressBar
+            android:id="@+id/progress_stamina"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
         <TextView
             android:id="@+id/text_discipline_level"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/discipline_level_placeholder" />
+
+        <ProgressBar
+            android:id="@+id/progress_discipline"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
 
         <Button
             android:id="@+id/button_simulate_workout"
