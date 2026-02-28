@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.domain.Exercise
@@ -48,9 +49,9 @@ class DashboardActivity : AppCompatActivity() {
                 name = "Bench Press",
                 isTimeBased = false,
                 baseWeight = 10.0,
-                strengthMultiplier = 3.0,
-                enduranceMultiplier = 1.0,
-                staminaMultiplier = 0.0
+                strengthMultiplier = 5.0,
+                enduranceMultiplier = 5.0,
+                staminaMultiplier = 5.0
             )
 
             workoutProcessor.processRepWorkout(
@@ -61,6 +62,20 @@ class DashboardActivity : AppCompatActivity() {
             )
 
             refreshUi()
+            maybeShowMuscleUnlockAchievement()
+        }
+    }
+
+    private fun maybeShowMuscleUnlockAchievement() {
+        val player = GameManager.player
+        if (player.overallLevel() >= 5 && !GameManager.hasMuscleUnlockBeenAnnounced) {
+            AlertDialog.Builder(this)
+                .setTitle("Achievement Unlocked")
+                .setMessage("Congratulations ${player.name}. You have unlocked Muscle Stats.")
+                .setPositiveButton("Continue", null)
+                .show()
+
+            GameManager.hasMuscleUnlockBeenAnnounced = true
         }
     }
 

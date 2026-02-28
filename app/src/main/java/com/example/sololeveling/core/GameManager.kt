@@ -6,6 +6,7 @@ import com.example.sololeveling.domain.StatType
 
 object GameManager {
     lateinit var player: PlayerProfile
+    var hasMuscleUnlockBeenAnnounced: Boolean = false
 
     fun initializePlayer(name: String) {
         val baseStats = listOf(
@@ -16,5 +17,6 @@ object GameManager {
         )
 
         player = PlayerProfile(name = name, stats = baseStats)
+        hasMuscleUnlockBeenAnnounced = false
     }
 }
