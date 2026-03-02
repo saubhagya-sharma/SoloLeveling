@@ -2,6 +2,13 @@ package com.example.sololeveling.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.example.sololeveling.data.local.dao.ExerciseDao
+import com.example.sololeveling.data.local.dao.MuscleStatDao
+import com.example.sololeveling.data.local.dao.PlayerDao
+import com.example.sololeveling.data.local.dao.StatDao
+import com.example.sololeveling.data.local.dao.WorkoutExerciseDao
+import com.example.sololeveling.data.local.dao.WorkoutSessionDao
+import com.example.sololeveling.data.local.dao.WorkoutSetDao
 import com.example.sololeveling.data.local.entity.ExerciseEntity
 import com.example.sololeveling.data.local.entity.MuscleStatEntity
 import com.example.sololeveling.data.local.entity.PlayerEntity
