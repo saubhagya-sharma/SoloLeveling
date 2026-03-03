@@ -7,7 +7,6 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
 import com.example.sololeveling.domain.PlayerProfile
-import com.example.sololeveling.domain.Stat
 import com.example.sololeveling.domain.StatType
 import kotlinx.coroutines.launch
 
@@ -23,17 +22,21 @@ class MainActivity : AppCompatActivity() {
 
             if (playerEntity != null) {
 
-                // Rebuild PlayerProfile from DB
-                val baseStats = listOf(
-                    Stat(type = StatType.STRENGTH),
-                    Stat(type = StatType.ENDURANCE),
-                    Stat(type = StatType.STAMINA),
-                    Stat(type = StatType.DISCIPLINE)
-                )
+                val statEntities = database.statDao().getAll()
+                val statsByType = statEntities.associateBy { it.type }
+
+                val restoredStats = StatType.entries.map { type ->
+                    val statEntity = statsByType[type.name]
+                    com.example.sololeveling.domain.Stat(
+                        type = type,
+                        level = statEntity?.level ?: 1,
+                        currentXp = statEntity?.currentXp ?: 0.0
+                    )
+                }
 
                 GameManager.player = PlayerProfile(
                     name = playerEntity.name,
-                    stats = baseStats
+                    stats = restoredStats
                 )
 
                 startActivity(Intent(this@MainActivity, DashboardActivity::class.java))
