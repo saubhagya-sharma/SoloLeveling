@@ -31,7 +31,10 @@ class WorkoutProcessor {
                 )
                 stat.addXp(xp)
 
-                if (stat.type == StatType.STRENGTH) {
+                if (
+                    stat.type == StatType.STRENGTH &&
+                    GameManager.player.isMuscleUnlocked()
+                ) {
                     val muscleXp = xp * MUSCLE_XP_SCALE
                     val muscle = GameManager.player.getMuscle(exercise.primaryMuscleName)
                     muscle?.addXp(muscleXp)
