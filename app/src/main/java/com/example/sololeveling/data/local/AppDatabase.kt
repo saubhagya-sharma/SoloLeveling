@@ -29,4 +29,13 @@ import com.example.sololeveling.data.local.entity.WorkoutSetEntity
     ],
     version = 1
 )
-abstract class AppDatabase : RoomDatabase()
+abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun playerDao(): PlayerDao
+    abstract fun statDao(): StatDao
+    abstract fun muscleStatDao(): MuscleStatDao
+    abstract fun exerciseDao(): ExerciseDao
+    abstract fun workoutSessionDao(): WorkoutSessionDao
+    abstract fun workoutExerciseDao(): WorkoutExerciseDao
+    abstract fun workoutSetDao(): WorkoutSetDao
+}

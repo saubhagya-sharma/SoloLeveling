@@ -3,6 +3,8 @@ package com.example.sololeveling
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,10 +20,22 @@ class NameEntryActivity : AppCompatActivity() {
 
         confirmButton.setOnClickListener {
             val name = nameEditText.text.toString().trim()
+
             if (name.isNotBlank()) {
-                GameManager.initializePlayer(name)
-                startActivity(Intent(this, DashboardActivity::class.java))
-                finish()
+
+                val database = com.example.sololeveling.data.local.DatabaseProvider.getDatabase(this)
+
+                lifecycleScope.launch {
+                    database.playerDao().insertPlayer(
+                        com.example.sololeveling.data.local.entity.PlayerEntity(
+                            name = name
+                        )
+                    )
+                    GameManager.initializePlayer(name)
+                    startActivity(Intent(this@NameEntryActivity, DashboardActivity::class.java))
+                    finish()
+                }
+
             } else {
                 Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show()
             }
