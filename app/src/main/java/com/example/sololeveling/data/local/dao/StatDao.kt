@@ -14,6 +14,12 @@ interface StatDao {
     @Query("SELECT * FROM stat")
     suspend fun getAll(): List<StatEntity>
 
+    @Query("SELECT * FROM stat WHERE type = :type LIMIT 1")
+    suspend fun getByType(type: String): StatEntity?
+
+    @Query("UPDATE stat SET level = :level, currentXp = :currentXp WHERE type = :type")
+    suspend fun updateStat(type: String, level: Int, currentXp: Double)
+
     @Update
     suspend fun update(stat: StatEntity)
 

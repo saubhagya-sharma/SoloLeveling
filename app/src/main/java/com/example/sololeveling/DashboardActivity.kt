@@ -6,10 +6,14 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.sololeveling.core.GameManager
+import com.example.sololeveling.data.local.DatabaseProvider
+import com.example.sololeveling.data.local.entity.StatEntity
 import com.example.sololeveling.domain.Exercise
 import com.example.sololeveling.domain.StatType
 import com.example.sololeveling.domain.WorkoutProcessor
+import kotlinx.coroutines.launch
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var playerNameTextView: TextView
@@ -25,6 +29,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var simulateWorkoutButton: Button
 
     private val workoutProcessor = WorkoutProcessor()
+    private val database by lazy { DatabaseProvider.getDatabase(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +65,31 @@ class DashboardActivity : AppCompatActivity() {
                 weight = 20.0,
                 stats = GameManager.player.stats
             )
+
+            lifecycleScope.launch {
+                GameManager.player.stats.forEach { stat ->
+                    val statDao = database.statDao()
+                    val existing = statDao.getByType(stat.type.name)
+
+                    if (existing == null) {
+                        statDao.insertAll(
+                            listOf(
+                                StatEntity(
+                                    type = stat.type.name,
+                                    level = stat.level,
+                                    currentXp = stat.currentXp
+                                )
+                            )
+                        )
+                    } else {
+                        statDao.updateStat(
+                            type = stat.type.name,
+                            level = stat.level,
+                            currentXp = stat.currentXp
+                        )
+                    }
+                }
+            }
 
             refreshUi()
             maybeShowMuscleUnlockAchievement()
