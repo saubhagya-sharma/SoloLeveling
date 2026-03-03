@@ -5,8 +5,7 @@ data class MuscleStat(
     var level: Int = 1,
     var currentXp: Double = 0.0
 ) {
-    fun xpRequired(): Double = 100.0 * level
-
+    fun xpRequired(): Double = 150.0 * level * level
     fun addXp(amount: Double) {
         if (amount <= 0.0) return
 
