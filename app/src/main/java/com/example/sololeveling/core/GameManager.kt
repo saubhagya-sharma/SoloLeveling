@@ -1,6 +1,7 @@
 package com.example.sololeveling.core
 
 import com.example.sololeveling.domain.PlayerProfile
+import com.example.sololeveling.domain.MuscleStat
 import com.example.sololeveling.domain.Stat
 import com.example.sololeveling.domain.StatType
 
@@ -16,7 +17,16 @@ object GameManager {
             Stat(type = StatType.DISCIPLINE)
         )
 
-        player = PlayerProfile(name = name, stats = baseStats)
+        val baseMuscleList = listOf(
+            MuscleStat(name = "Chest"),
+            MuscleStat(name = "Back"),
+            MuscleStat(name = "Legs"),
+            MuscleStat(name = "Shoulders"),
+            MuscleStat(name = "Arms"),
+            MuscleStat(name = "Core")
+        )
+
+        player = PlayerProfile(name = name, stats = baseStats, muscleStats = baseMuscleList)
         hasMuscleUnlockBeenAnnounced = false
     }
 }
