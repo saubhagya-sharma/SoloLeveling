@@ -1,6 +1,11 @@
 package com.example.sololeveling.domain
 
+import com.example.sololeveling.core.GameManager
+
 class WorkoutProcessor {
+    private companion object {
+        private const val MUSCLE_XP_SCALE = 0.5
+    }
     fun processRepWorkout(
         exercise: Exercise,
         reps: Int,
@@ -25,6 +30,15 @@ class WorkoutProcessor {
                     multiplier = multiplier
                 )
                 stat.addXp(xp)
+
+                if (
+                    stat.type == StatType.STRENGTH &&
+                    GameManager.player.isMuscleUnlocked()
+                ) {
+                    val muscleXp = xp * MUSCLE_XP_SCALE
+                    val muscle = GameManager.player.getMuscle(exercise.primaryMuscleName)
+                    muscle?.addXp(muscleXp)
+                }
             }
         }
     }

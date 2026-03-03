@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
 import com.example.sololeveling.domain.PlayerProfile
+import com.example.sololeveling.domain.MuscleStat
 import com.example.sololeveling.domain.StatType
 import kotlinx.coroutines.launch
 
@@ -34,9 +35,19 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
+                val baseMuscleList = listOf(
+                    MuscleStat(name = "Chest"),
+                    MuscleStat(name = "Back"),
+                    MuscleStat(name = "Legs"),
+                    MuscleStat(name = "Shoulders"),
+                    MuscleStat(name = "Arms"),
+                    MuscleStat(name = "Core")
+                )
+
                 GameManager.player = PlayerProfile(
                     name = playerEntity.name,
-                    stats = restoredStats
+                    stats = restoredStats,
+                    muscleStats = baseMuscleList
                 )
 
                 startActivity(Intent(this@MainActivity, DashboardActivity::class.java))
