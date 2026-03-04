@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
+import com.example.sololeveling.data.local.entity.MuscleStatEntity
 import com.example.sololeveling.data.local.entity.StatEntity
 import com.example.sololeveling.domain.Exercise
 import com.example.sololeveling.domain.StatType
@@ -114,6 +115,29 @@ class DashboardActivity : AppCompatActivity() {
                             type = stat.type.name,
                             level = stat.level,
                             currentXp = stat.currentXp
+                        )
+                    }
+                }
+
+                GameManager.player.muscleStats.forEach { muscle ->
+                    val muscleDao = database.muscleStatDao()
+                    val existing = muscleDao.getByName(muscle.name)
+
+                    if (existing == null) {
+                        muscleDao.insertAll(
+                            listOf(
+                                MuscleStatEntity(
+                                    name = muscle.name,
+                                    level = muscle.level,
+                                    currentXp = muscle.currentXp
+                                )
+                            )
+                        )
+                    } else {
+                        muscleDao.updateMuscle(
+                            name = muscle.name,
+                            level = muscle.level,
+                            currentXp = muscle.currentXp
                         )
                     }
                 }
