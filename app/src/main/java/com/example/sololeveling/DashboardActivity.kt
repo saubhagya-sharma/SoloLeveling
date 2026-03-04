@@ -1,6 +1,7 @@
 package com.example.sololeveling
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -26,6 +27,19 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var enduranceProgressBar: ProgressBar
     private lateinit var staminaProgressBar: ProgressBar
     private lateinit var disciplineProgressBar: ProgressBar
+    private lateinit var muscleContainer: android.widget.LinearLayout
+    private lateinit var chestLevelTextView: TextView
+    private lateinit var chestProgressBar: ProgressBar
+    private lateinit var backLevelTextView: TextView
+    private lateinit var backProgressBar: ProgressBar
+    private lateinit var legsLevelTextView: TextView
+    private lateinit var legsProgressBar: ProgressBar
+    private lateinit var shouldersLevelTextView: TextView
+    private lateinit var shouldersProgressBar: ProgressBar
+    private lateinit var armsLevelTextView: TextView
+    private lateinit var armsProgressBar: ProgressBar
+    private lateinit var coreLevelTextView: TextView
+    private lateinit var coreProgressBar: ProgressBar
     private lateinit var simulateWorkoutButton: Button
 
     private val workoutProcessor = WorkoutProcessor()
@@ -45,6 +59,19 @@ class DashboardActivity : AppCompatActivity() {
         enduranceProgressBar = findViewById(R.id.progress_endurance)
         staminaProgressBar = findViewById(R.id.progress_stamina)
         disciplineProgressBar = findViewById(R.id.progress_discipline)
+        muscleContainer = findViewById(R.id.muscle_container)
+        chestLevelTextView = findViewById(R.id.text_chest_level)
+        chestProgressBar = findViewById(R.id.progress_chest)
+        backLevelTextView = findViewById(R.id.text_back_level)
+        backProgressBar = findViewById(R.id.progress_back)
+        legsLevelTextView = findViewById(R.id.text_legs_level)
+        legsProgressBar = findViewById(R.id.progress_legs)
+        shouldersLevelTextView = findViewById(R.id.text_shoulders_level)
+        shouldersProgressBar = findViewById(R.id.progress_shoulders)
+        armsLevelTextView = findViewById(R.id.text_arms_level)
+        armsProgressBar = findViewById(R.id.progress_arms)
+        coreLevelTextView = findViewById(R.id.text_core_level)
+        coreProgressBar = findViewById(R.id.progress_core)
         simulateWorkoutButton = findViewById(R.id.button_simulate_workout)
 
         refreshUi()
@@ -134,5 +161,36 @@ class DashboardActivity : AppCompatActivity() {
         enduranceProgressBar.progress = ((enduranceStat?.progressToNextLevel() ?: 0.0) * 100).toInt()
         staminaProgressBar.progress = ((staminaStat?.progressToNextLevel() ?: 0.0) * 100).toInt()
         disciplineProgressBar.progress = ((disciplineStat?.progressToNextLevel() ?: 0.0) * 100).toInt()
+
+        if (player.isMuscleUnlocked()) {
+            muscleContainer.visibility = View.VISIBLE
+
+            val chest = player.getMuscle("Chest")
+            val back = player.getMuscle("Back")
+            val legs = player.getMuscle("Legs")
+            val shoulders = player.getMuscle("Shoulders")
+            val arms = player.getMuscle("Arms")
+            val core = player.getMuscle("Core")
+
+            chestLevelTextView.text = "Chest Lv. ${chest?.level ?: 0}"
+            chestProgressBar.progress = ((chest?.progressToNextLevel() ?: 0.0) * 100).toInt()
+
+            backLevelTextView.text = "Back Lv. ${back?.level ?: 0}"
+            backProgressBar.progress = ((back?.progressToNextLevel() ?: 0.0) * 100).toInt()
+
+            legsLevelTextView.text = "Legs Lv. ${legs?.level ?: 0}"
+            legsProgressBar.progress = ((legs?.progressToNextLevel() ?: 0.0) * 100).toInt()
+
+            shouldersLevelTextView.text = "Shoulders Lv. ${shoulders?.level ?: 0}"
+            shouldersProgressBar.progress = ((shoulders?.progressToNextLevel() ?: 0.0) * 100).toInt()
+
+            armsLevelTextView.text = "Arms Lv. ${arms?.level ?: 0}"
+            armsProgressBar.progress = ((arms?.progressToNextLevel() ?: 0.0) * 100).toInt()
+
+            coreLevelTextView.text = "Core Lv. ${core?.level ?: 0}"
+            coreProgressBar.progress = ((core?.progressToNextLevel() ?: 0.0) * 100).toInt()
+        } else {
+            muscleContainer.visibility = View.GONE
+        }
     }
 }
