@@ -35,19 +35,32 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
-                val baseMuscleList = listOf(
-                    MuscleStat(name = "Chest"),
-                    MuscleStat(name = "Back"),
-                    MuscleStat(name = "Legs"),
-                    MuscleStat(name = "Shoulders"),
-                    MuscleStat(name = "Arms"),
-                    MuscleStat(name = "Core")
-                )
+                val muscleEntities = database.muscleStatDao().getAll()
+
+                val restoredMuscles =
+                    if (muscleEntities.isNotEmpty()) {
+                        muscleEntities.map {
+                            MuscleStat(
+                                name = it.name,
+                                level = it.level,
+                                currentXp = it.currentXp
+                            )
+                        }
+                    } else {
+                        listOf(
+                            MuscleStat("Chest"),
+                            MuscleStat("Back"),
+                            MuscleStat("Legs"),
+                            MuscleStat("Shoulders"),
+                            MuscleStat("Arms"),
+                            MuscleStat("Core")
+                        )
+                    }
 
                 GameManager.player = PlayerProfile(
                     name = playerEntity.name,
                     stats = restoredStats,
-                    muscleStats = baseMuscleList
+                    muscleStats = restoredMuscles
                 )
 
                 startActivity(Intent(this@MainActivity, DashboardActivity::class.java))
