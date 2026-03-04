@@ -1,5 +1,6 @@
 package com.example.sololeveling
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -42,6 +43,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var coreLevelTextView: TextView
     private lateinit var coreProgressBar: ProgressBar
     private lateinit var simulateWorkoutButton: Button
+    private lateinit var devResetButton: Button
 
     private val workoutProcessor = WorkoutProcessor()
     private val database by lazy { DatabaseProvider.getDatabase(this) }
@@ -74,8 +76,39 @@ class DashboardActivity : AppCompatActivity() {
         coreLevelTextView = findViewById(R.id.text_core_level)
         coreProgressBar = findViewById(R.id.progress_core)
         simulateWorkoutButton = findViewById(R.id.button_simulate_workout)
+        devResetButton = findViewById(R.id.button_dev_reset)
+
+        if (BuildConfig.DEBUG) {
+            devResetButton.visibility = View.VISIBLE
+        }
 
         refreshUi()
+
+        devResetButton.setOnClickListener {
+
+            AlertDialog.Builder(this)
+                .setTitle("Developer Reset")
+                .setMessage("This will delete ALL saved data and restart the app. Continue?")
+                .setPositiveButton("RESET") { _, _ ->
+
+                    lifecycleScope.launch {
+
+                        val db = DatabaseProvider.getDatabase(this@DashboardActivity)
+
+                        db.muscleStatDao().deleteAll()
+                        db.statDao().deleteAll()
+                        db.playerDao().deleteAll()
+
+                        val intent = Intent(this@DashboardActivity, MainActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                        startActivity(intent)
+                        finish()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
 
         simulateWorkoutButton.setOnClickListener {
             val exercise = Exercise(
