@@ -84,7 +84,8 @@ class DashboardActivity : AppCompatActivity() {
                 baseWeight = 10.0,
                 strengthMultiplier = 5.0,
                 enduranceMultiplier = 5.0,
-                staminaMultiplier = 5.0
+                staminaMultiplier = 5.0,
+                primaryMuscleName = "Chest"
             )
 
             workoutProcessor.processRepWorkout(
