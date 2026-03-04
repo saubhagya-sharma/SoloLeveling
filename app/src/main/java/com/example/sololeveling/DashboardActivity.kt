@@ -3,6 +3,7 @@ package com.example.sololeveling
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import com.example.sololeveling.BuildConfig
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
