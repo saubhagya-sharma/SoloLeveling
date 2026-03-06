@@ -30,6 +30,7 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
     private lateinit var exerciseNameTextView: TextView
     private lateinit var setsRecyclerView: RecyclerView
     private lateinit var addSetButton: MaterialButton
+    private lateinit var finishExerciseButton: MaterialButton
 
     private val database by lazy { DatabaseProvider.getDatabase(this) }
     private val adapter = WorkoutSetAdapter(::onSetTapped)
@@ -50,6 +51,7 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
         exerciseNameTextView = findViewById(R.id.text_exercise_name)
         setsRecyclerView = findViewById(R.id.recycler_sets)
         addSetButton = findViewById(R.id.button_add_set)
+        finishExerciseButton = findViewById(R.id.button_finish_exercise)
 
         setsRecyclerView.layoutManager = LinearLayoutManager(this)
         setsRecyclerView.adapter = adapter
@@ -60,6 +62,19 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
                     .getMostRecentByWorkoutExerciseId(workoutExerciseId)
                 showSetDialog(editSet = null, prefillSet = mostRecentSet)
             }
+        }
+
+        finishExerciseButton.setOnClickListener {
+            if (adapter.itemCount == 0) {
+                Toast.makeText(
+                    this,
+                    "Add at least one set before finishing.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            finish()
         }
 
         loadExercise()
