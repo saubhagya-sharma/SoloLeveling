@@ -27,7 +27,7 @@ import com.example.sololeveling.data.local.entity.WorkoutSetEntity
         WorkoutExerciseEntity::class,
         WorkoutSetEntity::class
     ],
-    version = 1
+    version = 2
 )
 abstract class AppDatabase : RoomDatabase() {
 

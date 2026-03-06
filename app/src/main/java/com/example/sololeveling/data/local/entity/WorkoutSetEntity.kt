@@ -21,6 +21,7 @@ data class WorkoutSetEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val workoutExerciseId: Int,
+    val setNumber: Int,
     val reps: Int?,
     val weight: Double?,
     val minutes: Double?
