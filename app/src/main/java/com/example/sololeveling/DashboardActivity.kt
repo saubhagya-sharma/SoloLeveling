@@ -46,7 +46,6 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var coreLevelTextView: TextView
     private lateinit var coreProgressBar: ProgressBar
     private lateinit var startWorkoutButton: Button
-    private lateinit var simulateWorkoutButton: Button
     private lateinit var devResetButton: Button
 
     private val database by lazy { DatabaseProvider.getDatabase(this) }
@@ -79,7 +78,6 @@ class DashboardActivity : AppCompatActivity() {
         coreLevelTextView = findViewById(R.id.text_core_level)
         coreProgressBar = findViewById(R.id.progress_core)
         startWorkoutButton = findViewById(R.id.button_start_workout)
-        simulateWorkoutButton = findViewById(R.id.button_simulate_workout)
         devResetButton = findViewById(R.id.button_dev_reset)
 
         if (BuildConfig.DEBUG) {
@@ -128,59 +126,6 @@ class DashboardActivity : AppCompatActivity() {
                     )
                 )
             }
-        }
-
-        simulateWorkoutButton.setOnClickListener {
-            lifecycleScope.launch {
-                GameManager.player.stats.forEach { stat ->
-                    val statDao = database.statDao()
-                    val existing = statDao.getByType(stat.type.name)
-
-                    if (existing == null) {
-                        statDao.insertAll(
-                            listOf(
-                                StatEntity(
-                                    type = stat.type.name,
-                                    level = stat.level,
-                                    currentXp = stat.currentXp
-                                )
-                            )
-                        )
-                    } else {
-                        statDao.updateStat(
-                            type = stat.type.name,
-                            level = stat.level,
-                            currentXp = stat.currentXp
-                        )
-                    }
-                }
-
-                GameManager.player.muscleStats.forEach { muscle ->
-                    val muscleDao = database.muscleStatDao()
-                    val existing = muscleDao.getByName(muscle.name)
-
-                    if (existing == null) {
-                        muscleDao.insertAll(
-                            listOf(
-                                MuscleStatEntity(
-                                    name = muscle.name,
-                                    level = muscle.level,
-                                    currentXp = muscle.currentXp
-                                )
-                            )
-                        )
-                    } else {
-                        muscleDao.updateMuscle(
-                            name = muscle.name,
-                            level = muscle.level,
-                            currentXp = muscle.currentXp
-                        )
-                    }
-                }
-            }
-
-            refreshUi()
-            maybeShowMuscleUnlockAchievement()
         }
     }
 
