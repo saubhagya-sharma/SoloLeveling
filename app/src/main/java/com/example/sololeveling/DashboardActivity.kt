@@ -129,6 +129,13 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        refreshUi()
+        maybeShowMuscleUnlockAchievement()
+    }
+
     private fun maybeShowMuscleUnlockAchievement() {
         val player = GameManager.player
         if (player.overallLevel() >= 5 && !GameManager.hasMuscleUnlockBeenAnnounced) {
