@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.sololeveling.core.GameManager
+import com.example.sololeveling.data.local.DatabaseSeeder
 import com.example.sololeveling.data.local.DatabaseProvider
 import com.example.sololeveling.domain.PlayerProfile
 import com.example.sololeveling.domain.MuscleStat
@@ -19,6 +20,8 @@ class MainActivity : AppCompatActivity() {
         val database = DatabaseProvider.getDatabase(this)
 
         lifecycleScope.launch {
+            DatabaseSeeder.seedIfNeeded(database)
+
             val playerEntity = database.playerDao().getPlayer()
 
             if (playerEntity != null) {
