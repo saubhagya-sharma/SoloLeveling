@@ -14,10 +14,12 @@ import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
 import com.example.sololeveling.data.local.entity.MuscleStatEntity
 import com.example.sololeveling.data.local.entity.StatEntity
-import com.example.sololeveling.domain.Exercise
+import com.example.sololeveling.data.local.entity.WorkoutSessionEntity
 import com.example.sololeveling.domain.StatType
-import com.example.sololeveling.domain.WorkoutProcessor
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var playerNameTextView: TextView
@@ -43,10 +45,10 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var armsProgressBar: ProgressBar
     private lateinit var coreLevelTextView: TextView
     private lateinit var coreProgressBar: ProgressBar
+    private lateinit var startWorkoutButton: Button
     private lateinit var simulateWorkoutButton: Button
     private lateinit var devResetButton: Button
 
-    private val workoutProcessor = WorkoutProcessor()
     private val database by lazy { DatabaseProvider.getDatabase(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,6 +78,7 @@ class DashboardActivity : AppCompatActivity() {
         armsProgressBar = findViewById(R.id.progress_arms)
         coreLevelTextView = findViewById(R.id.text_core_level)
         coreProgressBar = findViewById(R.id.progress_core)
+        startWorkoutButton = findViewById(R.id.button_start_workout)
         simulateWorkoutButton = findViewById(R.id.button_simulate_workout)
         devResetButton = findViewById(R.id.button_dev_reset)
 
@@ -111,24 +114,23 @@ class DashboardActivity : AppCompatActivity() {
                 .show()
         }
 
+        startWorkoutButton.setOnClickListener {
+            lifecycleScope.launch {
+                val sessionDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val sessionId = database.workoutSessionDao().insert(
+                    WorkoutSessionEntity(date = sessionDate)
+                ).toInt()
+
+                startActivity(
+                    ExerciseSelectionActivity.createIntent(
+                        context = this@DashboardActivity,
+                        workoutSessionId = sessionId
+                    )
+                )
+            }
+        }
+
         simulateWorkoutButton.setOnClickListener {
-            val exercise = Exercise(
-                name = "Bench Press",
-                isTimeBased = false,
-                baseWeight = 10.0,
-                strengthMultiplier = 5.0,
-                enduranceMultiplier = 5.0,
-                staminaMultiplier = 5.0,
-                primaryMuscleName = "Chest"
-            )
-
-            workoutProcessor.processRepWorkout(
-                exercise = exercise,
-                reps = 20,
-                weight = 20.0,
-                stats = GameManager.player.stats
-            )
-
             lifecycleScope.launch {
                 GameManager.player.stats.forEach { stat ->
                     val statDao = database.statDao()

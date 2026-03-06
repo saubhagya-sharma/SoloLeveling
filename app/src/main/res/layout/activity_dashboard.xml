@@ -184,6 +184,13 @@
         </LinearLayout>
 
         <Button
+            android:id="@+id/button_start_workout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/start_workout" />
+
+        <Button
             android:id="@+id/button_simulate_workout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
