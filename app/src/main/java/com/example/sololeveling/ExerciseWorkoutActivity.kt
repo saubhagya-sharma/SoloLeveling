@@ -282,9 +282,38 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
         val staminaXp = xpBase * exercise.staminaMultiplier
 
         val player = GameManager.player
+        val strengthBefore = player.getStat(StatType.STRENGTH)?.level ?: 0
+        val enduranceBefore = player.getStat(StatType.ENDURANCE)?.level ?: 0
+        val staminaBefore = player.getStat(StatType.STAMINA)?.level ?: 0
+
         player.getStat(StatType.STRENGTH)?.addXp(strengthXp)
         player.getStat(StatType.ENDURANCE)?.addXp(enduranceXp)
         player.getStat(StatType.STAMINA)?.addXp(staminaXp)
+
+        val strengthAfter = player.getStat(StatType.STRENGTH)?.level ?: 0
+        val enduranceAfter = player.getStat(StatType.ENDURANCE)?.level ?: 0
+        val staminaAfter = player.getStat(StatType.STAMINA)?.level ?: 0
+
+        val levelUps = mutableListOf<String>()
+        if (strengthAfter > strengthBefore) {
+            levelUps.add("Strength → Lv $strengthAfter")
+        }
+        if (enduranceAfter > enduranceBefore) {
+            levelUps.add("Endurance → Lv $enduranceAfter")
+        }
+        if (staminaAfter > staminaBefore) {
+            levelUps.add("Stamina → Lv $staminaAfter")
+        }
+
+        if (levelUps.isNotEmpty()) {
+            runOnUiThread {
+                AlertDialog.Builder(this)
+                    .setTitle("LEVEL UP")
+                    .setMessage(levelUps.joinToString("\n"))
+                    .setPositiveButton("Continue", null)
+                    .show()
+            }
+        }
 
         if (player.isMuscleUnlocked()) {
             val muscleXp = strengthXp * 0.5
