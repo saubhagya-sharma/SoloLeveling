@@ -8,6 +8,9 @@ import com.example.sololeveling.data.local.entity.ExerciseEntity
 @Dao
 interface ExerciseDao {
     @Insert
+    suspend fun insert(exercise: ExerciseEntity)
+
+    @Insert
     suspend fun insertAll(exercises: List<ExerciseEntity>)
 
     @Query("SELECT * FROM exercise")

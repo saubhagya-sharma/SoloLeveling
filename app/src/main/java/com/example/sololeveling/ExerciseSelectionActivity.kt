@@ -17,14 +17,15 @@ import kotlinx.coroutines.launch
 class ExerciseSelectionActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
+    private var workoutSessionId: Int = INVALID_ID
     private val database by lazy { DatabaseProvider.getDatabase(this) }
-    private val adapter = ExerciseSelectionAdapter(::onExerciseTapped)
+    private val adapter = ExerciseSelectionAdapter(::onExerciseTapped, ::onAddNewExerciseTapped)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_exercise_selection)
 
-        val workoutSessionId = intent.getIntExtra(EXTRA_WORKOUT_SESSION_ID, INVALID_ID)
+        workoutSessionId = intent.getIntExtra(EXTRA_WORKOUT_SESSION_ID, INVALID_ID)
         if (workoutSessionId == INVALID_ID) {
             finish()
             return
@@ -34,6 +35,17 @@ class ExerciseSelectionActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
+        loadExercises()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (workoutSessionId != INVALID_ID) {
+            loadExercises()
+        }
+    }
+
+    private fun loadExercises() {
         lifecycleScope.launch {
             val exercises = database.exerciseDao().getAll()
             adapter.submitItems(buildListItems(exercises, workoutSessionId))
@@ -44,7 +56,7 @@ class ExerciseSelectionActivity : AppCompatActivity() {
         exercises: List<ExerciseEntity>,
         workoutSessionId: Int
     ): List<ExerciseListItem> {
-        return exercises
+        val groupedItems = exercises
             .groupBy { it.primaryMuscleName }
             .toSortedMap()
             .flatMap { (muscleName, groupedExercises) ->
@@ -54,6 +66,8 @@ class ExerciseSelectionActivity : AppCompatActivity() {
                         ExerciseListItem.ExerciseRow(exercise, workoutSessionId)
                     }
             }
+
+        return groupedItems + ExerciseListItem.AddNewExerciseRow
     }
 
     private fun onExerciseTapped(exerciseEntity: ExerciseEntity, workoutSessionId: Int) {
@@ -74,6 +88,10 @@ class ExerciseSelectionActivity : AppCompatActivity() {
         }
     }
 
+    private fun onAddNewExerciseTapped() {
+        startActivity(AddExerciseActivity.createIntent(this))
+    }
+
     companion object {
         const val EXTRA_WORKOUT_SESSION_ID = "extra_workout_session_id"
         private const val INVALID_ID = -1
@@ -89,10 +107,12 @@ class ExerciseSelectionActivity : AppCompatActivity() {
 private sealed class ExerciseListItem {
     data class Header(val title: String) : ExerciseListItem()
     data class ExerciseRow(val exercise: ExerciseEntity, val workoutSessionId: Int) : ExerciseListItem()
+    data object AddNewExerciseRow : ExerciseListItem()
 }
 
 private class ExerciseSelectionAdapter(
-    private val onExerciseTapped: (ExerciseEntity, Int) -> Unit
+    private val onExerciseTapped: (ExerciseEntity, Int) -> Unit,
+    private val onAddNewExerciseTapped: () -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val items = mutableListOf<ExerciseListItem>()
@@ -107,6 +127,7 @@ private class ExerciseSelectionAdapter(
         return when (items[position]) {
             is ExerciseListItem.Header -> VIEW_TYPE_HEADER
             is ExerciseListItem.ExerciseRow -> VIEW_TYPE_EXERCISE
+            is ExerciseListItem.AddNewExerciseRow -> VIEW_TYPE_ADD_NEW_EXERCISE
         }
     }
 
@@ -116,6 +137,7 @@ private class ExerciseSelectionAdapter(
 
         return when (viewType) {
             VIEW_TYPE_HEADER -> HeaderViewHolder(view)
+            VIEW_TYPE_ADD_NEW_EXERCISE -> AddExerciseViewHolder(view)
             else -> ExerciseViewHolder(view)
         }
     }
@@ -126,6 +148,7 @@ private class ExerciseSelectionAdapter(
         when (val item = items[position]) {
             is ExerciseListItem.Header -> (holder as HeaderViewHolder).bind(item)
             is ExerciseListItem.ExerciseRow -> (holder as ExerciseViewHolder).bind(item, onExerciseTapped)
+            is ExerciseListItem.AddNewExerciseRow -> (holder as AddExerciseViewHolder).bind(onAddNewExerciseTapped)
         }
     }
 
@@ -154,8 +177,21 @@ private class ExerciseSelectionAdapter(
         }
     }
 
+    private class AddExerciseViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(itemView) {
+        private val label: TextView = itemView.findViewById(android.R.id.text1)
+
+        fun bind(onAddNewExerciseTapped: () -> Unit) {
+            label.text = "➕ Add New Exercise"
+            label.setTypeface(label.typeface, Typeface.BOLD)
+            itemView.setOnClickListener {
+                onAddNewExerciseTapped()
+            }
+        }
+    }
+
     private companion object {
         const val VIEW_TYPE_HEADER = 0
         const val VIEW_TYPE_EXERCISE = 1
+        const val VIEW_TYPE_ADD_NEW_EXERCISE = 2
     }
 }
