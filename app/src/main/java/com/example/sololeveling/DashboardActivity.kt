@@ -138,14 +138,18 @@ class DashboardActivity : AppCompatActivity() {
 
     private fun maybeShowMuscleUnlockAchievement() {
         val player = GameManager.player
-        if (player.overallLevel() >= 5 && !GameManager.hasMuscleUnlockBeenAnnounced) {
-            AlertDialog.Builder(this)
-                .setTitle("Achievement Unlocked")
-                .setMessage("Congratulations ${player.name}. You have unlocked Muscle Stats.")
-                .setPositiveButton("Continue", null)
-                .show()
 
-            GameManager.hasMuscleUnlockBeenAnnounced = true
+        lifecycleScope.launch {
+            val playerEntity = database.playerDao().getPlayer()
+            if (playerEntity != null && !playerEntity.muscleUnlocked && player.overallLevel() >= 5) {
+                AlertDialog.Builder(this@DashboardActivity)
+                    .setTitle("Achievement Unlocked")
+                    .setMessage("Congratulations ${player.name}. You have unlocked Muscle Stats.")
+                    .setPositiveButton("Continue", null)
+                    .show()
+
+                database.playerDao().updateMuscleUnlocked(true)
+            }
         }
     }
 
