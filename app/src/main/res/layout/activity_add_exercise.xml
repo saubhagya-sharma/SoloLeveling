@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Exercise Name" />
+
+        <EditText
+            android:id="@+id/input_exercise_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Exercise Name"
+            android:inputType="textCapWords" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Primary Muscle" />
+
+        <RadioGroup
+            android:id="@+id/group_primary_muscle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/radio_chest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chest" />
+
+            <RadioButton
+                android:id="@+id/radio_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Back" />
+
+            <RadioButton
+                android:id="@+id/radio_legs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Legs" />
+
+            <RadioButton
+                android:id="@+id/radio_shoulders"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shoulders" />
+
+            <RadioButton
+                android:id="@+id/radio_arms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Arms" />
+
+            <RadioButton
+                android:id="@+id/radio_core"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Core" />
+
+            <RadioButton
+                android:id="@+id/radio_cardio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cardio" />
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Exercise Type" />
+
+        <RadioGroup
+            android:id="@+id/group_exercise_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/radio_weight_based"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Weight Based" />
+
+            <RadioButton
+                android:id="@+id/radio_time_based"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Time Based" />
+        </RadioGroup>
+
+        <EditText
+            android:id="@+id/input_base_weight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Base Weight (kg)"
+            android:inputType="numberDecimal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Stat Multipliers" />
+
+        <EditText
+            android:id="@+id/input_strength_multiplier"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Strength Multiplier"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/input_endurance_multiplier"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Endurance Multiplier"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/input_stamina_multiplier"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Stamina Multiplier"
+            android:inputType="numberDecimal" />
+
+        <Button
+            android:id="@+id/button_save_exercise"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Save Exercise" />
+    </LinearLayout>
+</ScrollView>

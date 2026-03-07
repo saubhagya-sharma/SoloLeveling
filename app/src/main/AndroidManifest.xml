@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SoloLeveling">
         <activity
+            android:name=".AddExerciseActivity"
+            android:exported="false" />
+        <activity
             android:name=".ExerciseWorkoutActivity"
             android:exported="false" />
         <activity
