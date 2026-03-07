@@ -12,6 +12,14 @@ object DatabaseProvider {
         }
     }
 
+    private val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE player ADD COLUMN muscleUnlocked INTEGER NOT NULL DEFAULT 0"
+            )
+        }
+    }
+
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
@@ -22,7 +30,7 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "solo_leveling_db"
             )
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
             INSTANCE = instance
             instance

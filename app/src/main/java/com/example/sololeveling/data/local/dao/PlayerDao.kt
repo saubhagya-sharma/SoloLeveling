@@ -19,4 +19,7 @@ interface PlayerDao {
 
     @Query("DELETE FROM player")
     suspend fun deleteAll()
+
+    @Query("UPDATE player SET muscleUnlocked = :value WHERE id = 1")
+    suspend fun updateMuscleUnlocked(value: Boolean)
 }
