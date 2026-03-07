@@ -283,6 +283,31 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
         player.getStat(StatType.ENDURANCE)?.addXp(totalEnduranceXp)
         player.getStat(StatType.STAMINA)?.addXp(totalStaminaXp)
 
+        val strengthAfter = player.getStat(StatType.STRENGTH)?.level ?: 0
+        val enduranceAfter = player.getStat(StatType.ENDURANCE)?.level ?: 0
+        val staminaAfter = player.getStat(StatType.STAMINA)?.level ?: 0
+
+        val levelUps = mutableListOf<String>()
+        if (strengthAfter > strengthBefore) {
+            levelUps.add("Strength → Lv $strengthAfter")
+        }
+        if (enduranceAfter > enduranceBefore) {
+            levelUps.add("Endurance → Lv $enduranceAfter")
+        }
+        if (staminaAfter > staminaBefore) {
+            levelUps.add("Stamina → Lv $staminaAfter")
+        }
+
+        if (levelUps.isNotEmpty()) {
+            runOnUiThread {
+                AlertDialog.Builder(this)
+                    .setTitle("LEVEL UP")
+                    .setMessage(levelUps.joinToString("\n"))
+                    .setPositiveButton("Continue", null)
+                    .show()
+            }
+        }
+
         if (player.isMuscleUnlocked()) {
             val muscleXp = totalStrengthXp * 0.5
             val muscle = player.getMuscle(exercise.primaryMuscleName)
