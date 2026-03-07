@@ -74,7 +74,13 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            finish()
+            lifecycleScope.launch {
+                val exercise = exerciseEntity
+                    ?: database.workoutExerciseDao().getExerciseByWorkoutExerciseId(workoutExerciseId)
+                    ?: return@launch
+                val sets = database.workoutSetDao().getByWorkoutExerciseId(workoutExerciseId)
+                applyXpForFinishedExercise(sets, exercise)
+            }
         }
 
         loadExercise()
@@ -171,7 +177,7 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
                         if (editSet == null) {
                             val maxSetNumber = database.workoutSetDao().getMaxSetNumber(workoutExerciseId)
                             val nextSetNumber = (maxSetNumber ?: 0) + 1
-                            val insertedId = database.workoutSetDao().insert(
+                            database.workoutSetDao().insert(
                                 WorkoutSetEntity(
                                     workoutExerciseId = workoutExerciseId,
                                     setNumber = nextSetNumber,
@@ -182,13 +188,6 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
                             )
                             insertedNewSet = true
                             loadSets()
-                            applyXpForInsertedSet(
-                                insertedId = insertedId,
-                                exercise = exerciseEntity,
-                                weight = null,
-                                reps = null,
-                                minutes = minutes
-                            )
                         } else {
                             database.workoutSetDao().update(
                                 editSet.copy(
@@ -214,7 +213,7 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
                         if (editSet == null) {
                             val maxSetNumber = database.workoutSetDao().getMaxSetNumber(workoutExerciseId)
                             val nextSetNumber = (maxSetNumber ?: 0) + 1
-                            val insertedId = database.workoutSetDao().insert(
+                            database.workoutSetDao().insert(
                                 WorkoutSetEntity(
                                     workoutExerciseId = workoutExerciseId,
                                     setNumber = nextSetNumber,
@@ -225,13 +224,6 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
                             )
                             insertedNewSet = true
                             loadSets()
-                            applyXpForInsertedSet(
-                                insertedId = insertedId,
-                                exercise = exerciseEntity,
-                                weight = weight,
-                                reps = reps,
-                                minutes = null
-                            )
                         } else {
                             database.workoutSetDao().update(
                                 editSet.copy(
@@ -253,42 +245,43 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
     }
 
 
-    private suspend fun applyXpForInsertedSet(
-        insertedId: Long,
-        exercise: ExerciseEntity?,
-        weight: Double?,
-        reps: Int?,
-        minutes: Double?
+    private suspend fun applyXpForFinishedExercise(
+        sets: List<WorkoutSetEntity>,
+        exercise: ExerciseEntity
     ) {
-        if (insertedId <= 0L || exercise == null) return
+        var totalStrengthXp = 0.0
+        var totalEnduranceXp = 0.0
+        var totalStaminaXp = 0.0
 
-        val xpBase = if (exercise.isTimeBased) {
-            val safeMinutes = minutes ?: return
-            if (safeMinutes <= 0.0) return
-            safeMinutes * 10.0
-        } else {
-            val safeWeight = weight ?: return
-            val safeReps = reps ?: return
-            val baseWeight = exercise.baseWeight ?: return
-            if (safeReps <= 0 || safeWeight <= 0.0 || baseWeight <= 0.0) return
+        sets.forEach { set ->
+            val xpBase = if (exercise.isTimeBased) {
+                val safeMinutes = set.minutes ?: return@forEach
+                if (safeMinutes <= 0.0) return@forEach
+                safeMinutes * 10.0
+            } else {
+                val safeWeight = set.weight ?: return@forEach
+                val safeReps = set.reps ?: return@forEach
+                val baseWeight = exercise.baseWeight ?: return@forEach
+                if (safeReps <= 0 || safeWeight <= 0.0 || baseWeight <= 0.0) return@forEach
 
-            val volume = safeWeight * safeReps
-            val weightFactor = safeWeight / baseWeight
-            volume * weightFactor * 0.1
+                val volume = safeWeight * safeReps
+                val weightFactor = safeWeight / baseWeight
+                volume * weightFactor * 0.1
+            }
+
+            totalStrengthXp += xpBase * exercise.strengthMultiplier
+            totalEnduranceXp += xpBase * exercise.enduranceMultiplier
+            totalStaminaXp += xpBase * exercise.staminaMultiplier
         }
-
-        val strengthXp = xpBase * exercise.strengthMultiplier
-        val enduranceXp = xpBase * exercise.enduranceMultiplier
-        val staminaXp = xpBase * exercise.staminaMultiplier
 
         val player = GameManager.player
         val strengthBefore = player.getStat(StatType.STRENGTH)?.level ?: 0
         val enduranceBefore = player.getStat(StatType.ENDURANCE)?.level ?: 0
         val staminaBefore = player.getStat(StatType.STAMINA)?.level ?: 0
 
-        player.getStat(StatType.STRENGTH)?.addXp(strengthXp)
-        player.getStat(StatType.ENDURANCE)?.addXp(enduranceXp)
-        player.getStat(StatType.STAMINA)?.addXp(staminaXp)
+        player.getStat(StatType.STRENGTH)?.addXp(totalStrengthXp)
+        player.getStat(StatType.ENDURANCE)?.addXp(totalEnduranceXp)
+        player.getStat(StatType.STAMINA)?.addXp(totalStaminaXp)
 
         val strengthAfter = player.getStat(StatType.STRENGTH)?.level ?: 0
         val enduranceAfter = player.getStat(StatType.ENDURANCE)?.level ?: 0
@@ -316,12 +309,42 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
         }
 
         if (player.isMuscleUnlocked()) {
-            val muscleXp = strengthXp * 0.5
+            val muscleXp = totalStrengthXp * 0.5
             val muscle = player.getMuscle(exercise.primaryMuscleName)
             muscle?.addXp(muscleXp)
         }
 
-        persistPlayerProgress()
+        val strengthAfter = player.getStat(StatType.STRENGTH)?.level ?: 0
+        val enduranceAfter = player.getStat(StatType.ENDURANCE)?.level ?: 0
+        val staminaAfter = player.getStat(StatType.STAMINA)?.level ?: 0
+
+        val levelUps = mutableListOf<String>()
+        if (strengthAfter > strengthBefore) {
+            levelUps.add("Strength → Lv $strengthAfter")
+        }
+        if (enduranceAfter > enduranceBefore) {
+            levelUps.add("Endurance → Lv $enduranceAfter")
+        }
+        if (staminaAfter > staminaBefore) {
+            levelUps.add("Stamina → Lv $staminaAfter")
+        }
+
+        if (levelUps.isNotEmpty()) {
+            AlertDialog.Builder(this)
+                .setTitle("LEVEL UP")
+                .setMessage(levelUps.joinToString("\n"))
+                .setPositiveButton("Continue") { _, _ ->
+                    lifecycleScope.launch {
+                        persistPlayerProgress()
+                        finish()
+                    }
+                }
+                .setCancelable(false)
+                .show()
+        } else {
+            persistPlayerProgress()
+            finish()
+        }
     }
 
     private suspend fun persistPlayerProgress() {
