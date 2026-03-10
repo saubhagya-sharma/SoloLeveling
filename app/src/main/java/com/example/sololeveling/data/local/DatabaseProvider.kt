@@ -20,6 +20,15 @@ object DatabaseProvider {
         }
     }
 
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE player ADD COLUMN weeklyGoalDays INTEGER NOT NULL DEFAULT 4")
+            db.execSQL("ALTER TABLE player ADD COLUMN weeklyVisits INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE player ADD COLUMN lastVisitDate TEXT")
+            db.execSQL("ALTER TABLE player ADD COLUMN lastWeekResetDate TEXT")
+        }
+    }
+
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
@@ -30,7 +39,7 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "solo_leveling_db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
             INSTANCE = instance
             instance

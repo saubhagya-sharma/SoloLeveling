@@ -28,6 +28,8 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var enduranceLevelTextView: TextView
     private lateinit var staminaLevelTextView: TextView
     private lateinit var disciplineLevelTextView: TextView
+    private lateinit var weeklyGoalTextView: TextView
+    private lateinit var weeklyProgressTextView: TextView
     private lateinit var strengthProgressBar: ProgressBar
     private lateinit var enduranceProgressBar: ProgressBar
     private lateinit var staminaProgressBar: ProgressBar
@@ -60,6 +62,8 @@ class DashboardActivity : AppCompatActivity() {
         enduranceLevelTextView = findViewById(R.id.text_endurance_level)
         staminaLevelTextView = findViewById(R.id.text_stamina_level)
         disciplineLevelTextView = findViewById(R.id.text_discipline_level)
+        weeklyGoalTextView = findViewById(R.id.text_weekly_goal)
+        weeklyProgressTextView = findViewById(R.id.text_weekly_progress)
         strengthProgressBar = findViewById(R.id.progress_strength)
         enduranceProgressBar = findViewById(R.id.progress_endurance)
         staminaProgressBar = findViewById(R.id.progress_stamina)
@@ -158,6 +162,7 @@ class DashboardActivity : AppCompatActivity() {
 
         playerNameTextView.text = getString(R.string.player_name_format, player.name)
         overallLevelTextView.text = getString(R.string.overall_level_format, player.overallLevel())
+        refreshWeeklyProgress()
 
         val strengthStat = player.getStat(StatType.STRENGTH)
         val enduranceStat = player.getStat(StatType.ENDURANCE)
@@ -208,6 +213,21 @@ class DashboardActivity : AppCompatActivity() {
             coreProgressBar.progress = ((core?.progressToNextLevel() ?: 0.0) * 100).toInt()
         } else {
             muscleContainer.visibility = View.GONE
+        }
+    }
+
+    private fun refreshWeeklyProgress() {
+        lifecycleScope.launch {
+            val playerEntity = database.playerDao().getPlayer()
+            val weeklyGoal = playerEntity?.weeklyGoalDays ?: 4
+            val weeklyVisits = playerEntity?.weeklyVisits ?: 0
+
+            weeklyGoalTextView.text = getString(R.string.weekly_goal_format, weeklyGoal)
+            weeklyProgressTextView.text = getString(
+                R.string.weekly_progress_format,
+                weeklyVisits,
+                weeklyGoal
+            )
         }
     }
 }
