@@ -1,6 +1,5 @@
 package com.example.sololeveling
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.lifecycle.lifecycleScope
@@ -32,7 +31,7 @@ class NameEntryActivity : AppCompatActivity() {
                         )
                     )
                     GameManager.initializePlayer(name)
-                    startActivity(Intent(this@NameEntryActivity, DashboardActivity::class.java))
+                    startActivity(SetGoalActivity.createIntent(this@NameEntryActivity))
                     finish()
                 }
 
