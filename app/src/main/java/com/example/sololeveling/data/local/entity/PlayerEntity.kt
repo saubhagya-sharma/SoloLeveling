@@ -8,5 +8,9 @@ data class PlayerEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val name: String,
-    val muscleUnlocked: Boolean = false
+    val muscleUnlocked: Boolean = false,
+    val weeklyGoalDays: Int = 4,
+    val weeklyVisits: Int = 0,
+    val lastVisitDate: String? = null,
+    val lastWeekResetDate: String? = null
 )

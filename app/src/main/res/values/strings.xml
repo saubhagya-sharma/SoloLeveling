@@ -9,6 +9,8 @@
     <string name="endurance_level_placeholder">Endurance Level: -</string>
     <string name="stamina_level_placeholder">Stamina Level: -</string>
     <string name="discipline_level_placeholder">Discipline Level: -</string>
+    <string name="weekly_goal_placeholder">Weekly Goal: -</string>
+    <string name="weekly_progress_placeholder">Progress: - / -</string>
 
     <string name="player_name_format">Player: %1$s</string>
     <string name="overall_level_format">Overall Level: %1$d</string>
@@ -16,6 +18,8 @@
     <string name="endurance_level_format">Endurance Level: %1$d</string>
     <string name="stamina_level_format">Stamina Level: %1$d</string>
     <string name="discipline_level_format">Discipline Level: %1$d</string>
+    <string name="weekly_goal_format">Weekly Goal: %1$d</string>
+    <string name="weekly_progress_format">Progress: %1$d / %2$d</string>
     <string name="add_set">Add Set</string>
     <string name="edit_set">Edit Set</string>
     <string name="weight_kg_hint">Weight (kg)</string>
