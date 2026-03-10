@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.sololeveling.core.DisciplineManager
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
 import com.example.sololeveling.data.local.entity.ExerciseEntity
@@ -348,6 +349,11 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
     }
 
     private suspend fun persistPlayerProgress() {
+        val disciplineXp = DisciplineManager(database).handleVisit()
+        if (disciplineXp > 0) {
+            GameManager.player.getStat(StatType.DISCIPLINE)?.addXp(disciplineXp)
+        }
+
         val statDao = database.statDao()
         GameManager.player.stats.forEach { stat ->
             val existing = statDao.getByType(stat.type.name)
