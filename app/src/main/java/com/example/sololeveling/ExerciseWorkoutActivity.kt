@@ -339,21 +339,9 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
             GameManager.player.getStat(StatType.DISCIPLINE)?.addXp(visitResult.xp)
 
             if (visitResult.goalReached) {
-                runOnUiThread {
-                    AlertDialog.Builder(this)
-                        .setTitle("GOAL COMPLETE")
-                        .setMessage("+500 Discipline XP\nWeekly goal achieved!")
-                        .setPositiveButton("Continue", null)
-                        .show()
-                }
+                GameManager.pendingGoalCompletion = true
             } else if (visitResult.extraDay) {
-                runOnUiThread {
-                    Toast.makeText(
-                        this,
-                        "+100 Discipline XP (Extra workout!)",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                GameManager.pendingExtraWorkout = true
             }
         }
 

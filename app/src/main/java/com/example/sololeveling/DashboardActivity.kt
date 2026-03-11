@@ -144,6 +144,7 @@ class DashboardActivity : AppCompatActivity() {
 
         refreshUi()
         maybeShowMuscleUnlockAchievement()
+        maybeShowDisciplineAchievement()
     }
 
     private fun maybeShowMuscleUnlockAchievement() {
@@ -160,6 +161,27 @@ class DashboardActivity : AppCompatActivity() {
 
                 database.playerDao().updateMuscleUnlocked(true)
             }
+        }
+    }
+
+    private fun maybeShowDisciplineAchievement() {
+
+        if (GameManager.pendingGoalCompletion) {
+            AlertDialog.Builder(this)
+                .setTitle("GOAL COMPLETE")
+                .setMessage("+500 Discipline XP\nWeekly goal achieved!")
+                .setPositiveButton("Continue", null)
+                .show()
+
+            GameManager.pendingGoalCompletion = false
+        } else if (GameManager.pendingExtraWorkout) {
+            AlertDialog.Builder(this)
+                .setTitle("EXTRA WORKOUT")
+                .setMessage("+100 Discipline XP\nYou trained beyond your weekly goal!")
+                .setPositiveButton("Continue", null)
+                .show()
+
+            GameManager.pendingExtraWorkout = false
         }
     }
 
