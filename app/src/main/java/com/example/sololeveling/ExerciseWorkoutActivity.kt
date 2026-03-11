@@ -349,9 +349,27 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
     }
 
     private suspend fun persistPlayerProgress() {
-        val disciplineXp = DisciplineManager(database).handleVisit()
-        if (disciplineXp > 0) {
-            GameManager.player.getStat(StatType.DISCIPLINE)?.addXp(disciplineXp)
+        val visitResult = DisciplineManager(database).handleVisit()
+        if (visitResult.xp > 0) {
+            GameManager.player.getStat(StatType.DISCIPLINE)?.addXp(visitResult.xp)
+
+            if (visitResult.goalReached) {
+                runOnUiThread {
+                    AlertDialog.Builder(this)
+                        .setTitle("GOAL COMPLETE")
+                        .setMessage("+500 Discipline XP\nWeekly goal achieved!")
+                        .setPositiveButton("Continue", null)
+                        .show()
+                }
+            } else if (visitResult.extraDay) {
+                runOnUiThread {
+                    Toast.makeText(
+                        this,
+                        "+100 Discipline XP (Extra workout!)",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
 
         val statDao = database.statDao()

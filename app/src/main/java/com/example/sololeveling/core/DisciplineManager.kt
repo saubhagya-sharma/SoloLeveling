@@ -10,13 +10,13 @@ import java.util.Locale
 class DisciplineManager(
     private val database: AppDatabase
 ) {
-    suspend fun handleVisit(): Double {
-        val player = database.playerDao().getPlayer() ?: return 0.0
+    suspend fun handleVisit(): VisitResult {
+        val player = database.playerDao().getPlayer() ?: return VisitResult(0.0, false, false)
         val today = currentDate()
 
         val resetPlayer = weeklyReset(player, today)
         if (resetPlayer.lastVisitDate == today) {
-            return 0.0
+            return VisitResult(0.0, false, false)
         }
 
         val updatedVisits = resetPlayer.weeklyVisits + 1
@@ -29,7 +29,14 @@ class DisciplineManager(
             )
         )
 
-        return rewardXp
+        val goalReached = updatedVisits == resetPlayer.weeklyGoalDays
+        val extraDay = updatedVisits > resetPlayer.weeklyGoalDays
+
+        return VisitResult(
+            xp = rewardXp,
+            goalReached = goalReached,
+            extraDay = extraDay
+        )
     }
 
     suspend fun weeklyReset(
