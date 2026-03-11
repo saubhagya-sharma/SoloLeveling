@@ -7,6 +7,8 @@ import com.example.sololeveling.domain.StatType
 
 object GameManager {
     lateinit var player: PlayerProfile
+    var pendingGoalCompletion: Boolean = false
+    var pendingExtraWorkout: Boolean = false
     fun initializePlayer(name: String) {
         val baseStats = listOf(
             Stat(type = StatType.STRENGTH),
