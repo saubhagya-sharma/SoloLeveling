@@ -30,14 +30,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="@string/weekly_goal_placeholder" />
+            android:text="Weekly Goal: 0 / 4" />
 
-        <TextView
-            android:id="@+id/text_weekly_progress"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/button_edit_goal"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/weekly_progress_placeholder" />
+            android:layout_marginTop="8dp"
+            android:text="Edit Goal" />
 
         <TextView
             android:id="@+id/text_strength_level"

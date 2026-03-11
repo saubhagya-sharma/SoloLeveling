@@ -3,6 +3,8 @@ package com.example.sololeveling
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.NumberPicker
 import com.example.sololeveling.BuildConfig
 import android.widget.Button
 import android.widget.ProgressBar
@@ -29,12 +31,12 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var staminaLevelTextView: TextView
     private lateinit var disciplineLevelTextView: TextView
     private lateinit var weeklyGoalTextView: TextView
-    private lateinit var weeklyProgressTextView: TextView
+    private lateinit var editGoalButton: Button
     private lateinit var strengthProgressBar: ProgressBar
     private lateinit var enduranceProgressBar: ProgressBar
     private lateinit var staminaProgressBar: ProgressBar
     private lateinit var disciplineProgressBar: ProgressBar
-    private lateinit var muscleContainer: android.widget.LinearLayout
+    private lateinit var muscleContainer: LinearLayout
     private lateinit var chestLevelTextView: TextView
     private lateinit var chestProgressBar: ProgressBar
     private lateinit var backLevelTextView: TextView
@@ -63,7 +65,7 @@ class DashboardActivity : AppCompatActivity() {
         staminaLevelTextView = findViewById(R.id.text_stamina_level)
         disciplineLevelTextView = findViewById(R.id.text_discipline_level)
         weeklyGoalTextView = findViewById(R.id.text_weekly_goal)
-        weeklyProgressTextView = findViewById(R.id.text_weekly_progress)
+        editGoalButton = findViewById(R.id.button_edit_goal)
         strengthProgressBar = findViewById(R.id.progress_strength)
         enduranceProgressBar = findViewById(R.id.progress_endurance)
         staminaProgressBar = findViewById(R.id.progress_stamina)
@@ -86,6 +88,10 @@ class DashboardActivity : AppCompatActivity() {
 
         if (BuildConfig.DEBUG) {
             devResetButton.visibility = View.VISIBLE
+        }
+
+        editGoalButton.setOnClickListener {
+            showEditGoalDialog()
         }
 
         refreshUi()
@@ -138,6 +144,7 @@ class DashboardActivity : AppCompatActivity() {
 
         refreshUi()
         maybeShowMuscleUnlockAchievement()
+        maybeShowDisciplineAchievement()
     }
 
     private fun maybeShowMuscleUnlockAchievement() {
@@ -157,12 +164,32 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
+    private fun maybeShowDisciplineAchievement() {
+
+        if (GameManager.pendingGoalCompletion) {
+            AlertDialog.Builder(this)
+                .setTitle("GOAL COMPLETE")
+                .setMessage("+500 Discipline XP\nWeekly goal achieved!")
+                .setPositiveButton("Continue", null)
+                .show()
+
+            GameManager.pendingGoalCompletion = false
+        } else if (GameManager.pendingExtraWorkout) {
+            AlertDialog.Builder(this)
+                .setTitle("EXTRA WORKOUT")
+                .setMessage("+100 Discipline XP\nYou trained beyond your weekly goal!")
+                .setPositiveButton("Continue", null)
+                .show()
+
+            GameManager.pendingExtraWorkout = false
+        }
+    }
+
     private fun refreshUi() {
         val player = GameManager.player
 
         playerNameTextView.text = getString(R.string.player_name_format, player.name)
         overallLevelTextView.text = getString(R.string.overall_level_format, player.overallLevel())
-        refreshWeeklyProgress()
 
         val strengthStat = player.getStat(StatType.STRENGTH)
         val enduranceStat = player.getStat(StatType.ENDURANCE)
@@ -214,20 +241,36 @@ class DashboardActivity : AppCompatActivity() {
         } else {
             muscleContainer.visibility = View.GONE
         }
+
+        lifecycleScope.launch {
+            val playerEntity = database.playerDao().getPlayer() ?: return@launch
+            weeklyGoalTextView.text = "Weekly Goal: ${playerEntity.weeklyVisits} / ${playerEntity.weeklyGoalDays}"
+        }
     }
 
-    private fun refreshWeeklyProgress() {
+    private fun showEditGoalDialog() {
         lifecycleScope.launch {
-            val playerEntity = database.playerDao().getPlayer()
-            val weeklyGoal = playerEntity?.weeklyGoalDays ?: 4
-            val weeklyVisits = playerEntity?.weeklyVisits ?: 0
+            val playerEntity = database.playerDao().getPlayer() ?: return@launch
 
-            weeklyGoalTextView.text = getString(R.string.weekly_goal_format, weeklyGoal)
-            weeklyProgressTextView.text = getString(
-                R.string.weekly_progress_format,
-                weeklyVisits,
-                weeklyGoal
-            )
+            val numberPicker = NumberPicker(this@DashboardActivity).apply {
+                minValue = 1
+                maxValue = 7
+                value = playerEntity.weeklyGoalDays.coerceIn(1, 7)
+            }
+
+            AlertDialog.Builder(this@DashboardActivity)
+                .setTitle("Edit Weekly Goal")
+                .setView(numberPicker)
+                .setPositiveButton("Save") { _, _ ->
+                    lifecycleScope.launch {
+                        database.playerDao().updatePlayer(
+                            playerEntity.copy(weeklyGoalDays = numberPicker.value)
+                        )
+                        refreshUi()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 }

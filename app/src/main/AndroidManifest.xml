@@ -21,6 +21,9 @@
             android:name=".ExerciseSelectionActivity"
             android:exported="false" />
         <activity
+            android:name=".SetGoalActivity"
+            android:exported="false" />
+        <activity
             android:name=".DashboardActivity"
             android:exported="false" />
         <activity

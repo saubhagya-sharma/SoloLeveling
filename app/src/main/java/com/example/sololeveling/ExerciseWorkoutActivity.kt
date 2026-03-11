@@ -349,9 +349,15 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
     }
 
     private suspend fun persistPlayerProgress() {
-        val disciplineXp = DisciplineManager(database).handleVisit()
-        if (disciplineXp > 0) {
-            GameManager.player.getStat(StatType.DISCIPLINE)?.addXp(disciplineXp)
+        val visitResult = DisciplineManager(database).handleVisit()
+        if (visitResult.xp > 0) {
+            GameManager.player.getStat(StatType.DISCIPLINE)?.addXp(visitResult.xp)
+
+            if (visitResult.goalReached) {
+                GameManager.pendingGoalCompletion = true
+            } else if (visitResult.extraDay) {
+                GameManager.pendingExtraWorkout = true
+            }
         }
 
         val statDao = database.statDao()
