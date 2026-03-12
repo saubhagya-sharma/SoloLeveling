@@ -10,6 +10,29 @@ interface WorkoutSessionDao {
     @Query("SELECT * FROM workout_session WHERE date = :date LIMIT 1")
     suspend fun getSessionByDate(date: String): WorkoutSessionEntity?
 
+    @Query(
+        """
+        SELECT * FROM workout_session
+        WHERE date = :date
+        AND id IN (
+            SELECT sessionId FROM workout_exercise
+        )
+        LIMIT 1
+        """
+    )
+    suspend fun getSessionByDateWithExercises(date: String): WorkoutSessionEntity?
+
+    @Query(
+        """
+        SELECT workout_session.date
+        FROM workout_session
+        INNER JOIN workout_exercise ON workout_exercise.sessionId = workout_session.id
+        GROUP BY workout_session.id
+        HAVING COUNT(workout_exercise.id) > 0
+        """
+    )
+    suspend fun getWorkoutDatesWithExercises(): List<String>
+
     @Insert
     suspend fun insert(session: WorkoutSessionEntity): Long
 
