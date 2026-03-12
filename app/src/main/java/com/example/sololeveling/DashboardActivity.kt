@@ -50,6 +50,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var coreLevelTextView: TextView
     private lateinit var coreProgressBar: ProgressBar
     private lateinit var startWorkoutButton: Button
+    private lateinit var workoutHistoryButton: Button
     private lateinit var devResetButton: Button
 
     private val database by lazy { DatabaseProvider.getDatabase(this) }
@@ -84,6 +85,7 @@ class DashboardActivity : AppCompatActivity() {
         coreLevelTextView = findViewById(R.id.text_core_level)
         coreProgressBar = findViewById(R.id.progress_core)
         startWorkoutButton = findViewById(R.id.button_start_workout)
+        workoutHistoryButton = findViewById(R.id.button_workout_history)
         devResetButton = findViewById(R.id.button_dev_reset)
 
         if (BuildConfig.DEBUG) {
@@ -125,7 +127,8 @@ class DashboardActivity : AppCompatActivity() {
         startWorkoutButton.setOnClickListener {
             lifecycleScope.launch {
                 val sessionDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                val sessionId = database.workoutSessionDao().insert(
+                val existingSession = database.workoutSessionDao().getSessionByDate(sessionDate)
+                val sessionId = existingSession?.id ?: database.workoutSessionDao().insert(
                     WorkoutSessionEntity(date = sessionDate)
                 ).toInt()
 
@@ -136,6 +139,10 @@ class DashboardActivity : AppCompatActivity() {
                     )
                 )
             }
+        }
+
+        workoutHistoryButton.setOnClickListener {
+            startActivity(Intent(this, HistoryActivity::class.java))
         }
     }
 

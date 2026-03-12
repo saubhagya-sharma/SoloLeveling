@@ -15,6 +15,12 @@
             android:name=".AddExerciseActivity"
             android:exported="false" />
         <activity
+            android:name=".SessionDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HistoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".ExerciseWorkoutActivity"
             android:exported="false" />
         <activity
