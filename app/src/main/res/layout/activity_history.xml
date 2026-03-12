@@ -20,10 +20,10 @@
         android:text="Workout Days:"
         android:textSize="12sp" />
 
-    <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+    <CalendarView
         android:id="@+id/calendar_workout_history"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="12dp"/>
 
 </LinearLayout>
