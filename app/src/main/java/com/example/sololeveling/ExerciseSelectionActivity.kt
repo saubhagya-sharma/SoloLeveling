@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class ExerciseSelectionActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
+    private lateinit var endWorkoutButton: Button
     private var workoutSessionId: Int = INVALID_ID
     private val database by lazy { DatabaseProvider.getDatabase(this) }
     private val adapter = ExerciseSelectionAdapter(::onExerciseTapped, ::onAddNewExerciseTapped)
@@ -32,8 +34,13 @@ class ExerciseSelectionActivity : AppCompatActivity() {
         }
 
         recyclerView = findViewById(R.id.recycler_exercises)
+        endWorkoutButton = findViewById(R.id.button_end_workout)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
+
+        endWorkoutButton.setOnClickListener {
+            finish()
+        }
 
         loadExercises()
     }
