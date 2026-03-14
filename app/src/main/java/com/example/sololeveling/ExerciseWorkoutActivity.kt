@@ -10,6 +10,8 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import android.os.Handler
+import android.os.Looper
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -332,32 +334,25 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
         )
     }
 
-    private fun showPrDialogIfNeeded(prUpdateInfo: PrUpdateInfo?, onContinue: () -> Unit) {
+    private fun createPrMessage(prUpdateInfo: PrUpdateInfo?): String? {
         if (prUpdateInfo == null) {
-            onContinue()
-            return
+            return null
         }
 
         val previousLine = if (prUpdateInfo.previousWeight != null && prUpdateInfo.previousReps != null) {
-            "Previous: ${weightFormatter.format(prUpdateInfo.previousWeight)} kg x ${prUpdateInfo.previousReps}"
+            "Previous: ${weightFormatter.format(prUpdateInfo.previousWeight)}kg x ${prUpdateInfo.previousReps}"
         } else {
             "Previous: None"
         }
 
-        val message = buildString {
+        return buildString {
+            append("NEW PERSONAL RECORD\n")
             append(prUpdateInfo.exerciseName)
-            append("\n\n")
-            append("${weightFormatter.format(prUpdateInfo.newWeight)} kg x ${prUpdateInfo.newReps}")
-            append("\n\n")
+            append("\n")
+            append("${weightFormatter.format(prUpdateInfo.newWeight)}kg x ${prUpdateInfo.newReps}")
+            append("\n")
             append(previousLine)
         }
-
-        AlertDialog.Builder(this)
-            .setTitle("NEW RECORD")
-            .setMessage(message)
-            .setCancelable(false)
-            .setPositiveButton("Continue") { _, _ -> onContinue() }
-            .show()
     }
 
 
@@ -414,16 +409,6 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
             levelUps.add("Stamina → Lv $staminaAfter")
         }
 
-        if (levelUps.isNotEmpty()) {
-            runOnUiThread {
-                AlertDialog.Builder(this)
-                    .setTitle("LEVEL UP")
-                    .setMessage(levelUps.joinToString("\n"))
-                    .setPositiveButton("Continue", null)
-                    .show()
-            }
-        }
-
         if (player.isMuscleUnlocked()) {
             val muscleXp = totalStrengthXp * 0.5
             val muscle = player.getMuscle(exercise.primaryMuscleName)
@@ -432,25 +417,31 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
 
         val prUpdateInfo = updatePrIfBroken(exercise, sets)
 
-        showPrDialogIfNeeded(prUpdateInfo) {
-            if (levelUps.isNotEmpty()) {
-                AlertDialog.Builder(this)
-                    .setTitle("LEVEL UP")
-                    .setMessage(levelUps.joinToString("\n"))
-                    .setPositiveButton("Continue") { _, _ ->
-                        lifecycleScope.launch {
-                            persistPlayerProgress()
-                            finish()
-                        }
-                    }
-                    .setCancelable(false)
-                    .show()
-            } else {
-                lifecycleScope.launch {
-                    persistPlayerProgress()
-                    finish()
+        val queuedMessages = mutableListOf<String>()
+        createPrMessage(prUpdateInfo)?.let(queuedMessages::add)
+        if (levelUps.isNotEmpty()) {
+            queuedMessages.add(
+                buildString {
+                    append("LEVEL UP\n")
+                    append(levelUps.joinToString("\n"))
                 }
+            )
+        }
+
+        queuedMessages.forEach { message ->
+            SystemMessageManager.show(this, message)
+        }
+
+        lifecycleScope.launch {
+            persistPlayerProgress()
+
+            val finishDelayMs = if (queuedMessages.isEmpty()) {
+                0L
+            } else {
+                queuedMessages.size * 3_100L
             }
+
+            Handler(Looper.getMainLooper()).postDelayed({ finish() }, finishDelayMs)
         }
     }
 
