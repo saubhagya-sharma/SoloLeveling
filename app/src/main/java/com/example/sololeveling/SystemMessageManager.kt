@@ -52,7 +52,8 @@ object SystemMessageManager {
         val overlay = LayoutInflater.from(activity).inflate(R.layout.view_system_message, root, false)
         overlay.alpha = 0f
 
-        overlay.findViewById<TextView>(R.id.system_message).text = nextMessage
+        val messageTextView = overlay.findViewById<TextView>(R.id.system_message)
+        animateText(messageTextView, nextMessage)
 
         val removeTask = Runnable {
             removeCurrentAndShowNext()
@@ -72,6 +73,20 @@ object SystemMessageManager {
         isShowing = true
 
         mainHandler.postDelayed(removeTask, DISPLAY_DURATION_MS)
+    }
+
+
+    private fun animateText(textView: TextView, message: String) {
+        textView.text = ""
+
+        val handler = Handler(Looper.getMainLooper())
+        val delay = 25L
+
+        for (i in message.indices) {
+            handler.postDelayed({
+                textView.text = message.substring(0, i + 1)
+            }, i * delay)
+        }
     }
 
     private fun removeCurrentAndShowNext() {
