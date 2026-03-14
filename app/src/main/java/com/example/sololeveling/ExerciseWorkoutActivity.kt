@@ -10,6 +10,10 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -19,6 +23,7 @@ import com.example.sololeveling.core.DisciplineManager
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
 import com.example.sololeveling.data.local.entity.ExerciseEntity
+import com.example.sololeveling.data.local.entity.ExercisePrEntity
 import com.example.sololeveling.data.local.entity.MuscleStatEntity
 import com.example.sololeveling.data.local.entity.StatEntity
 import com.example.sololeveling.data.local.entity.WorkoutSetEntity
@@ -30,6 +35,7 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
 
     private lateinit var exerciseNameTextView: TextView
     private lateinit var setsRecyclerView: RecyclerView
+    private lateinit var currentPrTextView: TextView
     private lateinit var addSetButton: MaterialButton
     private lateinit var finishExerciseButton: MaterialButton
 
@@ -38,6 +44,7 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
 
     private var workoutExerciseId: Int = INVALID_ID
     private var exerciseEntity: ExerciseEntity? = null
+    private val weightFormatter = DecimalFormat("0.##")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +58,7 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
 
         exerciseNameTextView = findViewById(R.id.text_exercise_name)
         setsRecyclerView = findViewById(R.id.recycler_sets)
+        currentPrTextView = findViewById(R.id.text_current_pr)
         addSetButton = findViewById(R.id.button_add_set)
         finishExerciseButton = findViewById(R.id.button_finish_exercise)
 
@@ -92,6 +100,10 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
         lifecycleScope.launch {
             exerciseEntity = database.workoutExerciseDao().getExerciseByWorkoutExerciseId(workoutExerciseId)
             exerciseNameTextView.text = exerciseEntity?.name ?: getString(R.string.exercise_unknown)
+
+            val exerciseId = exerciseEntity?.id ?: return@launch
+            val storedPr = database.exercisePrDao().getPr(exerciseId)
+            currentPrTextView.text = formatPrLabel(storedPr)
         }
     }
 
@@ -246,6 +258,109 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
     }
 
 
+    private data class BestSet(val weight: Double, val reps: Int)
+
+    private data class PrUpdateInfo(
+        val exerciseName: String,
+        val newWeight: Double,
+        val newReps: Int,
+        val previousWeight: Double?,
+        val previousReps: Int?
+    )
+
+    private fun formatPrLabel(pr: ExercisePrEntity?): String {
+        return if (pr == null) {
+            "PR: None yet"
+        } else {
+            "PR: ${weightFormatter.format(pr.prWeight)}kg x ${pr.prReps}"
+        }
+    }
+
+    private fun getBestWeightSet(sets: List<WorkoutSetEntity>): BestSet? {
+        var bestSet: BestSet? = null
+        sets.forEach { set ->
+            val weight = set.weight ?: return@forEach
+            val reps = set.reps ?: return@forEach
+            if (weight <= 0.0 || reps <= 0) return@forEach
+
+            val currentBest = bestSet
+            if (currentBest == null || weight > currentBest.weight || (weight == currentBest.weight && reps > currentBest.reps)) {
+                bestSet = BestSet(weight = weight, reps = reps)
+            }
+        }
+        return bestSet
+    }
+
+    private suspend fun updatePrIfBroken(exercise: ExerciseEntity, sets: List<WorkoutSetEntity>): PrUpdateInfo? {
+        if (exercise.isTimeBased || exercise.primaryMuscleName.equals("Cardio", ignoreCase = true)) {
+            return null
+        }
+
+        val bestSet = getBestWeightSet(sets) ?: return null
+        val prDao = database.exercisePrDao()
+        val existingPr = prDao.getPr(exercise.id)
+
+        val isNewPr = existingPr == null ||
+            bestSet.weight > existingPr.prWeight ||
+            (bestSet.weight == existingPr.prWeight && bestSet.reps > existingPr.prReps)
+
+        if (!isNewPr) {
+            return null
+        }
+
+        val updatedPr = ExercisePrEntity(
+            exerciseId = exercise.id,
+            prWeight = bestSet.weight,
+            prReps = bestSet.reps,
+            dateAchieved = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        )
+
+        if (existingPr == null) {
+            prDao.insert(updatedPr)
+        } else {
+            prDao.update(updatedPr)
+        }
+
+        currentPrTextView.text = formatPrLabel(updatedPr)
+
+        return PrUpdateInfo(
+            exerciseName = exercise.name,
+            newWeight = bestSet.weight,
+            newReps = bestSet.reps,
+            previousWeight = existingPr?.prWeight,
+            previousReps = existingPr?.prReps
+        )
+    }
+
+    private fun showPrDialogIfNeeded(prUpdateInfo: PrUpdateInfo?, onContinue: () -> Unit) {
+        if (prUpdateInfo == null) {
+            onContinue()
+            return
+        }
+
+        val previousLine = if (prUpdateInfo.previousWeight != null && prUpdateInfo.previousReps != null) {
+            "Previous: ${weightFormatter.format(prUpdateInfo.previousWeight)} kg x ${prUpdateInfo.previousReps}"
+        } else {
+            "Previous: None"
+        }
+
+        val message = buildString {
+            append(prUpdateInfo.exerciseName)
+            append("\n\n")
+            append("${weightFormatter.format(prUpdateInfo.newWeight)} kg x ${prUpdateInfo.newReps}")
+            append("\n\n")
+            append(previousLine)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("NEW RECORD")
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("Continue") { _, _ -> onContinue() }
+            .show()
+    }
+
+
     private suspend fun applyXpForFinishedExercise(
         sets: List<WorkoutSetEntity>,
         exercise: ExerciseEntity
@@ -315,21 +430,27 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
             muscle?.addXp(muscleXp)
         }
 
-        if (levelUps.isNotEmpty()) {
-            AlertDialog.Builder(this)
-                .setTitle("LEVEL UP")
-                .setMessage(levelUps.joinToString("\n"))
-                .setPositiveButton("Continue") { _, _ ->
-                    lifecycleScope.launch {
-                        persistPlayerProgress()
-                        finish()
+        val prUpdateInfo = updatePrIfBroken(exercise, sets)
+
+        showPrDialogIfNeeded(prUpdateInfo) {
+            if (levelUps.isNotEmpty()) {
+                AlertDialog.Builder(this)
+                    .setTitle("LEVEL UP")
+                    .setMessage(levelUps.joinToString("\n"))
+                    .setPositiveButton("Continue") { _, _ ->
+                        lifecycleScope.launch {
+                            persistPlayerProgress()
+                            finish()
+                        }
                     }
+                    .setCancelable(false)
+                    .show()
+            } else {
+                lifecycleScope.launch {
+                    persistPlayerProgress()
+                    finish()
                 }
-                .setCancelable(false)
-                .show()
-        } else {
-            persistPlayerProgress()
-            finish()
+            }
         }
     }
 
