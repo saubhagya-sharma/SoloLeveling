@@ -11,9 +11,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sololeveling.data.local.DatabaseProvider
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
-import com.kizitonwose.calendar.core.ViewContainer
+import com.kizitonwose.calendar.view.ViewContainer
+import com.kizitonwose.calendar.view.MonthDayBinder
 import com.kizitonwose.calendar.view.CalendarView
-import com.kizitonwose.calendar.view.DayBinder
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
@@ -44,7 +44,7 @@ class HistoryActivity : AppCompatActivity() {
         val startMonth = currentMonth.minusMonths(12)
         val endMonth = currentMonth.plusMonths(12)
 
-        calendarView.dayBinder = object : DayBinder<WorkoutDayContainer> {
+        calendarView.dayBinder = object : MonthDayBinder<WorkoutDayContainer> {
             override fun create(view: View): WorkoutDayContainer = WorkoutDayContainer(view)
 
             override fun bind(container: WorkoutDayContainer, data: CalendarDay) {
