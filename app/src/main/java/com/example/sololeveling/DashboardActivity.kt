@@ -160,11 +160,10 @@ class DashboardActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val playerEntity = database.playerDao().getPlayer()
             if (playerEntity != null && !playerEntity.muscleUnlocked && player.overallLevel() >= 5) {
-                AlertDialog.Builder(this@DashboardActivity)
-                    .setTitle("Achievement Unlocked")
-                    .setMessage("Congratulations ${player.name}. You have unlocked Muscle Stats.")
-                    .setPositiveButton("Continue", null)
-                    .show()
+                SystemMessageManager.show(
+                    this@DashboardActivity,
+                    "ACHIEVEMENT\nMuscle Stats Unlocked\nCongratulations ${player.name}"
+                )
 
                 database.playerDao().updateMuscleUnlocked(true)
             }
@@ -174,19 +173,17 @@ class DashboardActivity : AppCompatActivity() {
     private fun maybeShowDisciplineAchievement() {
 
         if (GameManager.pendingGoalCompletion) {
-            AlertDialog.Builder(this)
-                .setTitle("GOAL COMPLETE")
-                .setMessage("+500 Discipline XP\nWeekly goal achieved!")
-                .setPositiveButton("Continue", null)
-                .show()
+            SystemMessageManager.show(
+                this,
+                "DISCIPLINE GOAL COMPLETE\n+500 Discipline XP\nWeekly goal achieved!"
+            )
 
             GameManager.pendingGoalCompletion = false
         } else if (GameManager.pendingExtraWorkout) {
-            AlertDialog.Builder(this)
-                .setTitle("EXTRA WORKOUT")
-                .setMessage("+100 Discipline XP\nYou trained beyond your weekly goal!")
-                .setPositiveButton("Continue", null)
-                .show()
+            SystemMessageManager.show(
+                this,
+                "ACHIEVEMENT\nEXTRA WORKOUT\n+100 Discipline XP"
+            )
 
             GameManager.pendingExtraWorkout = false
         }
