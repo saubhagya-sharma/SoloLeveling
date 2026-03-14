@@ -12,6 +12,15 @@
         android:textAppearance="?attr/textAppearanceHeadlineSmall"
         android:textStyle="bold" />
 
+    <TextView
+        android:id="@+id/text_current_pr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="PR: None yet"
+        android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_sets"
         android:layout_width="match_parent"
