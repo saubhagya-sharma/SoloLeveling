@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.sololeveling.core.DailyQuestType
 import com.example.sololeveling.data.local.DatabaseProvider
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -16,6 +17,7 @@ class SessionDetailActivity : AppCompatActivity() {
     private lateinit var dateTitleTextView: TextView
     private lateinit var exercisesRecyclerView: RecyclerView
     private lateinit var summaryTextView: TextView
+    private lateinit var dailyQuestsTextView: TextView
 
     private val database by lazy { DatabaseProvider.getDatabase(this) }
     private val adapter = SessionExerciseAdapter()
@@ -34,16 +36,17 @@ class SessionDetailActivity : AppCompatActivity() {
         dateTitleTextView = findViewById(R.id.text_session_date_title)
         exercisesRecyclerView = findViewById(R.id.recycler_session_exercises)
         summaryTextView = findViewById(R.id.text_session_summary)
+        dailyQuestsTextView = findViewById(R.id.text_daily_quests_history)
 
         exercisesRecyclerView.layoutManager = LinearLayoutManager(this)
         exercisesRecyclerView.adapter = adapter
 
         dateTitleTextView.text = "WORKOUT - ${formatDateTitle(date)}"
 
-        loadSessionDetails(sessionId)
+        loadSessionDetails(sessionId, date)
     }
 
-    private fun loadSessionDetails(sessionId: Int) {
+    private fun loadSessionDetails(sessionId: Int, date: String) {
         lifecycleScope.launch {
             val exerciseDetails = database.workoutExerciseDao().getSessionExerciseDetails(sessionId)
 
@@ -74,6 +77,16 @@ class SessionDetailActivity : AppCompatActivity() {
 
             adapter.submitItems(items)
             summaryTextView.text = "Exercises: ${exerciseDetails.size}\nSets: $totalSets\nVolume: ${totalVolume.toInt()} kg"
+
+            val dailyQuests = database.dailyQuestDao().getQuestsForDate(date)
+            dailyQuestsTextView.text = if (dailyQuests.isEmpty()) {
+                "No daily quests for this date"
+            } else {
+                dailyQuests.joinToString("\n") { quest ->
+                    val icon = if (quest.completed) "✓" else "✗"
+                    "$icon ${DailyQuestType.fromName(quest.questType).displayText}"
+                }
+            }
         }
     }
 
