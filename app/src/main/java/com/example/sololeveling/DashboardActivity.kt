@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.sololeveling.core.GameManager
+import com.example.sololeveling.core.DailyQuestManager
 import com.example.sololeveling.data.local.DatabaseProvider
 import com.example.sololeveling.data.local.entity.MuscleStatEntity
 import com.example.sololeveling.data.local.entity.StatEntity
@@ -51,6 +52,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var coreProgressBar: ProgressBar
     private lateinit var startWorkoutButton: Button
     private lateinit var workoutHistoryButton: Button
+    private lateinit var dailyQuestsButton: Button
     private lateinit var devResetButton: Button
 
     private val database by lazy { DatabaseProvider.getDatabase(this) }
@@ -86,6 +88,7 @@ class DashboardActivity : AppCompatActivity() {
         coreProgressBar = findViewById(R.id.progress_core)
         startWorkoutButton = findViewById(R.id.button_start_workout)
         workoutHistoryButton = findViewById(R.id.button_workout_history)
+        dailyQuestsButton = findViewById(R.id.button_daily_quests)
         devResetButton = findViewById(R.id.button_dev_reset)
 
         if (BuildConfig.DEBUG) {
@@ -144,12 +147,17 @@ class DashboardActivity : AppCompatActivity() {
         workoutHistoryButton.setOnClickListener {
             startActivity(Intent(this, HistoryActivity::class.java))
         }
+
+        dailyQuestsButton.setOnClickListener {
+            startActivity(Intent(this, DailyQuestActivity::class.java))
+        }
     }
 
     override fun onResume() {
         super.onResume()
 
         refreshUi()
+        refreshDailyQuestProgress()
         maybeShowMuscleUnlockAchievement()
         maybeShowDisciplineAchievement()
     }
@@ -275,6 +283,14 @@ class DashboardActivity : AppCompatActivity() {
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
+        }
+    }
+
+    private fun refreshDailyQuestProgress() {
+        lifecycleScope.launch {
+            val quests = DailyQuestManager(this@DashboardActivity, database).getTodayQuests()
+            val completed = quests.count { it.completed }
+            dailyQuestsButton.text = "DAILY QUESTS ($completed/3)"
         }
     }
 }
