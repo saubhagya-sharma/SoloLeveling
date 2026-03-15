@@ -15,6 +15,9 @@
             android:name=".AddExerciseActivity"
             android:exported="false" />
         <activity
+            android:name=".DailyQuestActivity"
+            android:exported="false" />
+        <activity
             android:name=".SessionDetailActivity"
             android:exported="false" />
         <activity

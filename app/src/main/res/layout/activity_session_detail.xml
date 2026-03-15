@@ -34,4 +34,19 @@
         android:layout_marginTop="8dp"
         android:text="Exercises: 0&#10;Sets: 0&#10;Volume: 0 kg" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="DAILY QUESTS"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/text_daily_quests_history"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="No daily quests for this date" />
+
 </LinearLayout>

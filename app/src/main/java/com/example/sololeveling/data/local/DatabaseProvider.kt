@@ -45,6 +45,21 @@ object DatabaseProvider {
         }
     }
 
+    private val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS daily_quest(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    date TEXT NOT NULL,
+                    questType TEXT NOT NULL,
+                    completed INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
@@ -55,7 +70,7 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "solo_leveling_db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .build()
             INSTANCE = instance
             instance
