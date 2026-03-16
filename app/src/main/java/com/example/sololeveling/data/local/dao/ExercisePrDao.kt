@@ -16,4 +16,10 @@ interface ExercisePrDao {
 
     @Update
     suspend fun update(pr: ExercisePrEntity)
+
+    @Query("SELECT COUNT(*) FROM exercise_pr")
+    suspend fun countPrs(): Int
+
+    @Query("SELECT MAX(prWeight) FROM exercise_pr")
+    suspend fun getMaxPrWeight(): Double?
 }

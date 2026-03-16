@@ -22,14 +22,20 @@ class DisciplineManager(
         val updatedVisits = resetPlayer.weeklyVisits + 1
         val rewardXp = calculateRewards(updatedVisits, resetPlayer.weeklyGoalDays)
 
-        database.playerDao().updatePlayer(
-            resetPlayer.copy(
-                weeklyVisits = updatedVisits,
-                lastVisitDate = today
-            )
+        val goalReached = updatedVisits == resetPlayer.weeklyGoalDays
+        val updatedPlayer = resetPlayer.copy(
+            weeklyVisits = updatedVisits,
+            lastVisitDate = today,
+            totalWeeklyGoalsCompleted = if (goalReached) {
+                resetPlayer.totalWeeklyGoalsCompleted + 1
+            } else {
+                resetPlayer.totalWeeklyGoalsCompleted
+            }
         )
 
-        val goalReached = updatedVisits == resetPlayer.weeklyGoalDays
+        database.playerDao().updatePlayer(updatedPlayer)
+
+        
         val extraDay = updatedVisits > resetPlayer.weeklyGoalDays
 
         return VisitResult(
