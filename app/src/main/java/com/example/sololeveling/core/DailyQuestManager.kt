@@ -72,6 +72,15 @@ class DailyQuestManager(
         val updatedQuest = quest.copy(completed = completed)
         dao.updateQuest(updatedQuest)
 
+        if (!quest.completed && completed) {
+            val player = database.playerDao().getPlayer()
+            if (player != null) {
+                database.playerDao().updatePlayer(
+                    player.copy(totalQuestCompletions = player.totalQuestCompletions + 1)
+                )
+            }
+        }
+
         val updatedQuests = dao.getQuestsForDate(today)
         val completedCount = updatedQuests.count { it.completed }
 

@@ -60,6 +60,27 @@ object DatabaseProvider {
         }
     }
 
+
+    private val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE player ADD COLUMN cheatMeals INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE player ADD COLUMN totalQuestCompletions INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE player ADD COLUMN totalWeeklyGoalsCompleted INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE player ADD COLUMN lastLevelMilestone INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE player ADD COLUMN lastWorkoutMilestone INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE player ADD COLUMN lastQuestMilestone INTEGER NOT NULL DEFAULT 0")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS achievement(
+                    achievementKey TEXT PRIMARY KEY NOT NULL,
+                    unlocked INTEGER NOT NULL,
+                    dateUnlocked TEXT NOT NULL
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
@@ -70,7 +91,7 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "solo_leveling_db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .build()
             INSTANCE = instance
             instance

@@ -2,6 +2,7 @@ package com.example.sololeveling.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.example.sololeveling.data.local.dao.AchievementDao
 import com.example.sololeveling.data.local.dao.ExerciseDao
 import com.example.sololeveling.data.local.dao.ExercisePrDao
 import com.example.sololeveling.data.local.dao.DailyQuestDao
@@ -11,6 +12,7 @@ import com.example.sololeveling.data.local.dao.StatDao
 import com.example.sololeveling.data.local.dao.WorkoutExerciseDao
 import com.example.sololeveling.data.local.dao.WorkoutSessionDao
 import com.example.sololeveling.data.local.dao.WorkoutSetDao
+import com.example.sololeveling.data.local.entity.AchievementEntity
 import com.example.sololeveling.data.local.entity.ExerciseEntity
 import com.example.sololeveling.data.local.entity.ExercisePrEntity
 import com.example.sololeveling.data.local.entity.DailyQuestEntity
@@ -24,6 +26,7 @@ import com.example.sololeveling.data.local.entity.WorkoutSetEntity
 @Database(
     entities = [
         PlayerEntity::class,
+        AchievementEntity::class,
         StatEntity::class,
         MuscleStatEntity::class,
         ExerciseEntity::class,
@@ -33,11 +36,12 @@ import com.example.sololeveling.data.local.entity.WorkoutSetEntity
         WorkoutExerciseEntity::class,
         WorkoutSetEntity::class
     ],
-    version = 6
+    version = 7
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun playerDao(): PlayerDao
+    abstract fun achievementDao(): AchievementDao
     abstract fun statDao(): StatDao
     abstract fun muscleStatDao(): MuscleStatDao
     abstract fun exerciseDao(): ExerciseDao

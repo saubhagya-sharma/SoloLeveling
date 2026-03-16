@@ -33,6 +33,16 @@ interface WorkoutSessionDao {
     )
     suspend fun getWorkoutDatesWithExercises(): List<String>
 
+
+    @Query(
+        """
+        SELECT COUNT(DISTINCT workout_session.id)
+        FROM workout_session
+        INNER JOIN workout_exercise ON workout_exercise.sessionId = workout_session.id
+        """
+    )
+    suspend fun countCompletedWorkouts(): Int
+
     @Insert
     suspend fun insert(session: WorkoutSessionEntity): Long
 
