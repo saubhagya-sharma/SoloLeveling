@@ -40,6 +40,27 @@
             android:text="Edit Goal" />
 
         <TextView
+            android:id="@+id/text_cheat_meals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Cheat Meals: 0" />
+
+        <Button
+            android:id="@+id/button_redeem_cheat_meal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Redeem Cheat Meal" />
+
+        <Button
+            android:id="@+id/button_convert_cheat_meal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Convert Cheat Meal to XP" />
+
+        <TextView
             android:id="@+id/text_strength_level"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

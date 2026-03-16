@@ -12,5 +12,11 @@ data class PlayerEntity(
     val weeklyGoalDays: Int = 4,
     val weeklyVisits: Int = 0,
     val lastVisitDate: String? = null,
-    val lastWeekResetDate: String? = null
+    val lastWeekResetDate: String? = null,
+    val cheatMeals: Int = 0,
+    val totalQuestCompletions: Int = 0,
+    val totalWeeklyGoalsCompleted: Int = 0,
+    val lastLevelMilestone: Int = 0,
+    val lastWorkoutMilestone: Int = 0,
+    val lastQuestMilestone: Int = 0
 )

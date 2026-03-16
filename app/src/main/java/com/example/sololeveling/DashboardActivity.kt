@@ -3,20 +3,18 @@ package com.example.sololeveling
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.NumberPicker
-import com.example.sololeveling.BuildConfig
-import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.sololeveling.core.GameManager
+import com.example.sololeveling.core.AchievementManager
 import com.example.sololeveling.core.DailyQuestManager
+import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
-import com.example.sololeveling.data.local.entity.MuscleStatEntity
-import com.example.sololeveling.data.local.entity.StatEntity
 import com.example.sololeveling.data.local.entity.WorkoutSessionEntity
 import com.example.sololeveling.domain.StatType
 import kotlinx.coroutines.launch
@@ -32,7 +30,10 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var staminaLevelTextView: TextView
     private lateinit var disciplineLevelTextView: TextView
     private lateinit var weeklyGoalTextView: TextView
+    private lateinit var cheatMealsTextView: TextView
     private lateinit var editGoalButton: Button
+    private lateinit var redeemCheatMealButton: Button
+    private lateinit var convertCheatMealButton: Button
     private lateinit var strengthProgressBar: ProgressBar
     private lateinit var enduranceProgressBar: ProgressBar
     private lateinit var staminaProgressBar: ProgressBar
@@ -68,7 +69,10 @@ class DashboardActivity : AppCompatActivity() {
         staminaLevelTextView = findViewById(R.id.text_stamina_level)
         disciplineLevelTextView = findViewById(R.id.text_discipline_level)
         weeklyGoalTextView = findViewById(R.id.text_weekly_goal)
+        cheatMealsTextView = findViewById(R.id.text_cheat_meals)
         editGoalButton = findViewById(R.id.button_edit_goal)
+        redeemCheatMealButton = findViewById(R.id.button_redeem_cheat_meal)
+        convertCheatMealButton = findViewById(R.id.button_convert_cheat_meal)
         strengthProgressBar = findViewById(R.id.progress_strength)
         enduranceProgressBar = findViewById(R.id.progress_endurance)
         staminaProgressBar = findViewById(R.id.progress_stamina)
@@ -95,30 +99,25 @@ class DashboardActivity : AppCompatActivity() {
             devResetButton.visibility = View.VISIBLE
         }
 
-        editGoalButton.setOnClickListener {
-            showEditGoalDialog()
-        }
+        editGoalButton.setOnClickListener { showEditGoalDialog() }
+        redeemCheatMealButton.setOnClickListener { redeemCheatMeal() }
+        convertCheatMealButton.setOnClickListener { convertCheatMealToXp() }
 
         refreshUi()
 
         devResetButton.setOnClickListener {
-
             AlertDialog.Builder(this)
                 .setTitle("Developer Reset")
                 .setMessage("This will delete ALL saved data and restart the app. Continue?")
                 .setPositiveButton("RESET") { _, _ ->
-
                     lifecycleScope.launch {
-
                         val db = DatabaseProvider.getDatabase(this@DashboardActivity)
-
                         db.muscleStatDao().deleteAll()
                         db.statDao().deleteAll()
                         db.playerDao().deleteAll()
 
                         val intent = Intent(this@DashboardActivity, MainActivity::class.java)
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-
                         startActivity(intent)
                         finish()
                     }
@@ -156,10 +155,72 @@ class DashboardActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
+        AchievementManager.attachHost(this)
+
         refreshUi()
         refreshDailyQuestProgress()
         maybeShowMuscleUnlockAchievement()
         maybeShowDisciplineAchievement()
+
+        lifecycleScope.launch {
+            AchievementManager.checkAchievements(database)
+            refreshUi()
+        }
+    }
+
+    private fun redeemCheatMeal() {
+        lifecycleScope.launch {
+            val player = database.playerDao().getPlayer() ?: return@launch
+            if (player.cheatMeals <= 0) {
+                SystemMessageManager.show(this@DashboardActivity, "NO CHEAT MEALS AVAILABLE")
+                return@launch
+            }
+
+            database.playerDao().updatePlayer(player.copy(cheatMeals = player.cheatMeals - 1))
+            SystemMessageManager.show(this@DashboardActivity, "CHEAT MEAL REDEEMED")
+            refreshUi()
+        }
+    }
+
+    private fun convertCheatMealToXp() {
+        lifecycleScope.launch {
+            val player = database.playerDao().getPlayer() ?: return@launch
+            if (player.cheatMeals <= 0) {
+                SystemMessageManager.show(this@DashboardActivity, "NO CHEAT MEALS AVAILABLE")
+                return@launch
+            }
+
+            val options = arrayOf("Strength", "Endurance", "Stamina", "Discipline")
+            AlertDialog.Builder(this@DashboardActivity)
+                .setTitle("Convert Cheat Meal to XP")
+                .setItems(options) { _, which ->
+                    lifecycleScope.launch {
+                        val statType = when (which) {
+                            0 -> StatType.STRENGTH
+                            1 -> StatType.ENDURANCE
+                            2 -> StatType.STAMINA
+                            else -> StatType.DISCIPLINE
+                        }
+
+                        val stat = GameManager.player.getStat(statType) ?: return@launch
+                        stat.addXp(200.0)
+                        database.statDao().updateStat(statType.name, stat.level, stat.currentXp)
+
+                        val latestPlayer = database.playerDao().getPlayer() ?: return@launch
+                        database.playerDao().updatePlayer(
+                            latestPlayer.copy(cheatMeals = (latestPlayer.cheatMeals - 1).coerceAtLeast(0))
+                        )
+
+                        SystemMessageManager.show(
+                            this@DashboardActivity,
+                            "CHEAT MEAL CONVERTED\n+200 XP to ${options[which]}"
+                        )
+                        refreshUi()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
     }
 
     private fun maybeShowMuscleUnlockAchievement() {
@@ -257,6 +318,7 @@ class DashboardActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val playerEntity = database.playerDao().getPlayer() ?: return@launch
             weeklyGoalTextView.text = "Weekly Goal: ${playerEntity.weeklyVisits} / ${playerEntity.weeklyGoalDays}"
+            cheatMealsTextView.text = "Cheat Meals: ${playerEntity.cheatMeals}"
         }
     }
 
