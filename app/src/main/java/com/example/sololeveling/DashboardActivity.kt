@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.sololeveling.core.AchievementManager
+import com.example.sololeveling.core.BossManager
 import com.example.sololeveling.core.DailyQuestManager
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
@@ -54,6 +55,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var startWorkoutButton: Button
     private lateinit var workoutHistoryButton: Button
     private lateinit var dailyQuestsButton: Button
+    private lateinit var inventoryButton: Button
     private lateinit var devResetButton: Button
 
     private val database by lazy { DatabaseProvider.getDatabase(this) }
@@ -93,6 +95,7 @@ class DashboardActivity : AppCompatActivity() {
         startWorkoutButton = findViewById(R.id.button_start_workout)
         workoutHistoryButton = findViewById(R.id.button_workout_history)
         dailyQuestsButton = findViewById(R.id.button_daily_quests)
+        inventoryButton = findViewById(R.id.button_inventory)
         devResetButton = findViewById(R.id.button_dev_reset)
 
         if (BuildConfig.DEBUG) {
@@ -150,6 +153,10 @@ class DashboardActivity : AppCompatActivity() {
         dailyQuestsButton.setOnClickListener {
             startActivity(Intent(this, DailyQuestActivity::class.java))
         }
+
+        inventoryButton.setOnClickListener {
+            startActivity(Intent(this, InventoryActivity::class.java))
+        }
     }
 
     override fun onResume() {
@@ -163,6 +170,9 @@ class DashboardActivity : AppCompatActivity() {
         maybeShowDisciplineAchievement()
 
         lifecycleScope.launch {
+            BossManager.deleteExpiredItems(database)
+            val totalWorkouts = database.workoutSessionDao().countCompletedWorkouts()
+            BossManager.maybeGiveRuneStone(database, totalWorkouts)
             AchievementManager.checkAchievements(database)
             refreshUi()
         }

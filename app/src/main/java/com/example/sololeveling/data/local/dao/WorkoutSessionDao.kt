@@ -33,6 +33,16 @@ interface WorkoutSessionDao {
     )
     suspend fun getWorkoutDatesWithExercises(): List<String>
 
+    @Query(
+        """
+        SELECT workout_session.date AS date, workout_session.isBossSession AS isBossSession
+        FROM workout_session
+        INNER JOIN workout_exercise ON workout_exercise.sessionId = workout_session.id
+        GROUP BY workout_session.id
+        HAVING COUNT(workout_exercise.id) > 0
+        """
+    )
+    suspend fun getWorkoutDateEntries(): List<WorkoutDateEntry>
 
     @Query(
         """
@@ -49,3 +59,8 @@ interface WorkoutSessionDao {
     @Query("DELETE FROM workout_session")
     suspend fun deleteAll()
 }
+
+data class WorkoutDateEntry(
+    val date: String,
+    val isBossSession: Boolean
+)
