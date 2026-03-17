@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.sololeveling.core.BossManager
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseSeeder
 import com.example.sololeveling.data.local.DatabaseProvider
@@ -21,6 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             DatabaseSeeder.seedIfNeeded(database)
+            BossManager.deleteExpiredItems(database)
 
             val playerEntity = database.playerDao().getPlayer()
 

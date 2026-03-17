@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SoloLeveling">
         <activity
+            android:name=".BossBattleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".InventoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddExerciseActivity"
             android:exported="false" />
         <activity

@@ -16,6 +16,9 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercise")
     suspend fun getAll(): List<ExerciseEntity>
 
+    @Query("SELECT * FROM exercise WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Int): ExerciseEntity?
+
     @Query("DELETE FROM exercise")
     suspend fun deleteAll()
 }

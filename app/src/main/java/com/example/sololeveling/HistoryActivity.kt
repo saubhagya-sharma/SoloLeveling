@@ -1,8 +1,6 @@
 package com.example.sololeveling
 
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -25,7 +23,7 @@ class HistoryActivity : AppCompatActivity() {
     private lateinit var calendarView: CalendarView
     private lateinit var workoutDaysTextView: TextView
     private val database by lazy { DatabaseProvider.getDatabase(this) }
-    private var workoutDates = emptySet<LocalDate>()
+    private var workoutIndicators = emptyMap<LocalDate, DayMarker>()
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.US)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,18 +51,16 @@ class HistoryActivity : AppCompatActivity() {
 
                 if (data.position == DayPosition.MonthDate) {
                     container.dayTextView.alpha = 1f
-                    if (data.date in workoutDates) {
-                        container.dotView.visibility = View.VISIBLE
-                        container.dotView.background = GradientDrawable().apply {
-                            shape = GradientDrawable.OVAL
-                            setColor(Color.GREEN)
-                        }
+                    val marker = workoutIndicators[data.date]
+                    if (marker != null) {
+                        container.indicatorTextView.visibility = View.VISIBLE
+                        container.indicatorTextView.text = marker.toIndicator()
                     } else {
-                        container.dotView.visibility = View.INVISIBLE
+                        container.indicatorTextView.visibility = View.INVISIBLE
                     }
                 } else {
                     container.dayTextView.alpha = 0.3f
-                    container.dotView.visibility = View.INVISIBLE
+                    container.indicatorTextView.visibility = View.INVISIBLE
                 }
             }
         }
@@ -75,15 +71,21 @@ class HistoryActivity : AppCompatActivity() {
 
     private fun loadWorkoutDates() {
         lifecycleScope.launch {
-            val rawDates = database.workoutSessionDao().getWorkoutDatesWithExercises()
-            workoutDates = rawDates.mapNotNull {
-                runCatching { LocalDate.parse(it, dateFormatter) }.getOrNull()
-            }.toSet()
+            val entries = database.workoutSessionDao().getWorkoutDateEntries()
+            workoutIndicators = entries.mapNotNull {
+                val date = runCatching { LocalDate.parse(it.date, dateFormatter) }.getOrNull() ?: return@mapNotNull null
+                date to DayMarker(hasWorkout = !it.isBossSession, hasBoss = it.isBossSession)
+            }.groupBy({ it.first }, { it.second }).mapValues { (_, markers) ->
+                DayMarker(
+                    hasWorkout = markers.any { it.hasWorkout },
+                    hasBoss = markers.any { it.hasBoss }
+                )
+            }
 
-            workoutDaysTextView.text = if (rawDates.isEmpty()) {
+            workoutDaysTextView.text = if (entries.isEmpty()) {
                 "No completed workout days yet."
             } else {
-                "Workout Days: ${rawDates.sorted().joinToString(", ")}"
+                "Workout Days: ${entries.map { it.date }.distinct().sorted().joinToString(", ")}"
             }
 
             calendarView.notifyCalendarChanged()
@@ -92,7 +94,7 @@ class HistoryActivity : AppCompatActivity() {
 
     private inner class WorkoutDayContainer(view: View) : ViewContainer(view) {
         val dayTextView: TextView = view.findViewById(R.id.text_day)
-        val dotView: View = view.findViewById(R.id.view_workout_dot)
+        val indicatorTextView: TextView = view.findViewById(R.id.text_indicator)
         lateinit var day: CalendarDay
 
         init {
@@ -112,6 +114,20 @@ class HistoryActivity : AppCompatActivity() {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private data class DayMarker(
+        val hasWorkout: Boolean,
+        val hasBoss: Boolean
+    ) {
+        fun toIndicator(): String {
+            return when {
+                hasWorkout && hasBoss -> "🟢🔴"
+                hasBoss -> "🔴"
+                hasWorkout -> "🟢"
+                else -> ""
             }
         }
     }
