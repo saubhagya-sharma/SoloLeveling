@@ -3,7 +3,11 @@ package com.example.sololeveling.core
 import com.example.sololeveling.data.local.AppDatabase
 import com.example.sololeveling.data.local.entity.BossEntity
 import com.example.sololeveling.data.local.entity.InventoryEntity
+import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import kotlin.random.Random
 
 const val WORKOUTS_PER_BOSS = 1
@@ -19,18 +23,44 @@ object BossManager {
 
     suspend fun maybeGiveRuneStone(database: AppDatabase, totalWorkouts: Int) {
         if (totalWorkouts <= 0) return
-        if (totalWorkouts % WORKOUTS_PER_BOSS == 0) {
-            if (database.inventoryDao().getItem(RUNE_TYPE) == null) {
-                val today = LocalDate.now()
-                database.inventoryDao().insert(
+
+        val playerDao = database.playerDao()
+        val player = playerDao.getPlayer() ?: return
+
+        val currentMilestone = totalWorkouts / WORKOUTS_PER_BOSS
+        val lastMilestone = player.lastBossRewardWorkoutCount / WORKOUTS_PER_BOSS
+
+        if (currentMilestone > lastMilestone) {
+            val inventoryDao = database.inventoryDao()
+
+            if (inventoryDao.getItem(RUNE_TYPE) == null) {
+                val today = currentDate()
+                val expiry = addDays(today, 4)
+
+                inventoryDao.insert(
                     InventoryEntity(
                         type = RUNE_TYPE,
-                        createdDate = today.toString(),
-                        expiryDate = today.plusDays(4).toString()
+                        createdDate = today,
+                        expiryDate = expiry
                     )
                 )
             }
+
+            playerDao.updatePlayer(
+                player.copy(lastBossRewardWorkoutCount = totalWorkouts)
+            )
         }
+    }
+
+    fun currentDate(): String =
+        SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
+    fun addDays(date: String, days: Int): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val cal = Calendar.getInstance()
+        cal.time = sdf.parse(date)!!
+        cal.add(Calendar.DAY_OF_YEAR, days)
+        return sdf.format(cal.time)
     }
 
     suspend fun generateBoss(database: AppDatabase): BossEntity? {

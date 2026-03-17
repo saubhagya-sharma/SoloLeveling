@@ -18,5 +18,6 @@ data class PlayerEntity(
     val totalWeeklyGoalsCompleted: Int = 0,
     val lastLevelMilestone: Int = 0,
     val lastWorkoutMilestone: Int = 0,
-    val lastQuestMilestone: Int = 0
+    val lastQuestMilestone: Int = 0,
+    val lastBossRewardWorkoutCount: Int = 0
 )
