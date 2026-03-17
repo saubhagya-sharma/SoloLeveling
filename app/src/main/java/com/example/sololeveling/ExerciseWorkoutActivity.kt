@@ -475,33 +475,44 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
     }
 
     private suspend fun handleBossOutcome(sets: List<WorkoutSetEntity>, queuedMessages: MutableList<String>) {
-            val boss = database.bossDao().getActiveBoss() ?: return
-            val isSuccess = didDefeatBoss(boss, sets)
-            if (isSuccess) {
-                database.bossDao().update(boss.copy(isCompleted = true))
+        val boss = database.bossDao().getActiveBoss() ?: return
+        val isSuccess = didDefeatBoss(boss, sets)
+        if (isSuccess) {
+            database.bossDao().update(boss.copy(isCompleted = true))
 
-                val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                val playerEntity = database.playerDao().getPlayer()
-                if (playerEntity != null) {
-                    database.playerDao().updatePlayer(playerEntity.copy(cheatMeals = playerEntity.cheatMeals + 1))
-                }
-
-                database.trophyDao().insert(
-                    TrophyEntity(
-                        bossName = boss.bossName,
-                        exerciseName = boss.exerciseName,
-                        dateEarned = today
-                    )
-                )
-
-                queuedMessages.add("SYSTEM MESSAGE\nBOSS DEFEATED\n${boss.bossName}\n\n+1 Cheat Meal\n+XP Boost")
-            } else {
-                val attempts = (boss.attemptsLeft - 1).coerceAtLeast(0)
-                database.bossDao().update(boss.copy(attemptsLeft = attempts))
-                if (attempts == 0) {
-                    queuedMessages.add("SYSTEM MESSAGE\nBOSS FAILED\n\nNo attempts remaining.")
-                }
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val playerEntity = database.playerDao().getPlayer()
+            if (playerEntity != null) {
+                database.playerDao().updatePlayer(playerEntity.copy(cheatMeals = playerEntity.cheatMeals + 1))
             }
+
+            database.trophyDao().insert(
+                TrophyEntity(
+                    bossName = boss.bossName,
+                    exerciseName = boss.exerciseName,
+                    dateEarned = today
+                )
+            )
+
+            queuedMessages.add("SYSTEM MESSAGE\nBOSS DEFEATED\n${boss.bossName}\n\n+1 Cheat Meal\n+XP Boost")
+        } else {
+            val attempts = (boss.attemptsLeft - 1).coerceAtLeast(0)
+            if (attempts <= 0) {
+                database.bossDao().deleteById(boss.id)
+
+                val rune = database.inventoryDao().getItem("RUNE_STONE")
+                if (rune != null) {
+                    database.inventoryDao().deleteById(rune.id)
+                }
+
+                queuedMessages.add(
+                    "SYSTEM MESSAGE\nBOSS FAILED\n\nNo attempts remaining.\nThe Rune Stone has shattered."
+                )
+            } else {
+                database.bossDao().update(boss.copy(attemptsLeft = attempts))
+                queuedMessages.add("SYSTEM MESSAGE\nBOSS FAILED\n\nAttempts Left: $attempts")
+            }
+        }
     }
 
     private suspend fun persistPlayerProgress() {

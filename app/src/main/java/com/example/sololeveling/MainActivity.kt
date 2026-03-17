@@ -23,6 +23,10 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             DatabaseSeeder.seedIfNeeded(database)
             BossManager.deleteExpiredItems(database)
+            val exhaustedBoss = database.bossDao().getExhaustedBoss()
+            if (exhaustedBoss != null) {
+                database.bossDao().deleteById(exhaustedBoss.id)
+            }
 
             val playerEntity = database.playerDao().getPlayer()
 
