@@ -17,6 +17,15 @@ interface PlayerDao {
     @Update
     suspend fun updatePlayer(player: PlayerEntity)
 
+    @Query(
+        """
+        UPDATE player
+        SET lastBossRewardWorkoutCount = :value
+        WHERE id = (SELECT id FROM player LIMIT 1)
+        """
+    )
+    suspend fun updateLastBossRewardWorkoutCount(value: Int)
+
     @Query("DELETE FROM player")
     suspend fun deleteAll()
 
