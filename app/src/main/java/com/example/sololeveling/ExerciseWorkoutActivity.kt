@@ -21,13 +21,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.sololeveling.core.BOSS_XP_MULTIPLIER
 import com.example.sololeveling.core.DisciplineManager
 import com.example.sololeveling.core.GameManager
 import com.example.sololeveling.data.local.DatabaseProvider
+import com.example.sololeveling.data.local.entity.BossEntity
 import com.example.sololeveling.data.local.entity.ExerciseEntity
 import com.example.sololeveling.data.local.entity.ExercisePrEntity
 import com.example.sololeveling.data.local.entity.MuscleStatEntity
 import com.example.sololeveling.data.local.entity.StatEntity
+import com.example.sololeveling.data.local.entity.TrophyEntity
 import com.example.sololeveling.data.local.entity.WorkoutSetEntity
 import com.example.sololeveling.domain.StatType
 import com.google.android.material.button.MaterialButton
@@ -47,12 +50,14 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
     private var workoutExerciseId: Int = INVALID_ID
     private var exerciseEntity: ExerciseEntity? = null
     private val weightFormatter = DecimalFormat("0.##")
+    private var bossId: Int = INVALID_ID
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_exercise_workout)
 
         workoutExerciseId = intent.getIntExtra(EXTRA_WORKOUT_EXERCISE_ID, INVALID_ID)
+        bossId = intent.getIntExtra(EXTRA_BOSS_ID, INVALID_ID)
         if (workoutExerciseId == INVALID_ID) {
             finish()
             return
@@ -385,6 +390,12 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
             totalStaminaXp += xpBase * exercise.staminaMultiplier
         }
 
+        if (bossId != INVALID_ID) {
+            totalStrengthXp *= BOSS_XP_MULTIPLIER
+            totalEnduranceXp *= BOSS_XP_MULTIPLIER
+            totalStaminaXp *= BOSS_XP_MULTIPLIER
+        }
+
         val player = GameManager.player
         val strengthBefore = player.getStat(StatType.STRENGTH)?.level ?: 0
         val enduranceBefore = player.getStat(StatType.ENDURANCE)?.level ?: 0
@@ -428,6 +439,10 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
             )
         }
 
+        if (bossId != INVALID_ID) {
+            handleBossOutcome(sets, queuedMessages)
+        }
+
         queuedMessages.forEach { message ->
             SystemMessageManager.show(this, message)
         }
@@ -443,6 +458,50 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({ finish() }, finishDelayMs)
         }
+    }
+
+
+    private fun didDefeatBoss(boss: BossEntity, sets: List<WorkoutSetEntity>): Boolean {
+        if (sets.isEmpty()) return false
+        return if (boss.requiredMinutes != null) {
+            sets.all { (it.minutes ?: 0.0) >= boss.requiredMinutes }
+        } else {
+            sets.all {
+                val weight = it.weight ?: 0.0
+                val reps = it.reps ?: 0
+                weight >= (boss.requiredWeight ?: Double.MAX_VALUE) && reps >= (boss.requiredReps ?: Int.MAX_VALUE)
+            }
+        }
+    }
+
+    private suspend fun handleBossOutcome(sets: List<WorkoutSetEntity>, queuedMessages: MutableList<String>) {
+            val boss = database.bossDao().getActiveBoss() ?: return
+            val isSuccess = didDefeatBoss(boss, sets)
+            if (isSuccess) {
+                database.bossDao().update(boss.copy(isCompleted = true))
+
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val playerEntity = database.playerDao().getPlayer()
+                if (playerEntity != null) {
+                    database.playerDao().updatePlayer(playerEntity.copy(cheatMeals = playerEntity.cheatMeals + 1))
+                }
+
+                database.trophyDao().insert(
+                    TrophyEntity(
+                        bossName = boss.bossName,
+                        exerciseName = boss.exerciseName,
+                        dateEarned = today
+                    )
+                )
+
+                queuedMessages.add("SYSTEM MESSAGE\nBOSS DEFEATED\n${boss.bossName}\n\n+1 Cheat Meal\n+XP Boost")
+            } else {
+                val attempts = (boss.attemptsLeft - 1).coerceAtLeast(0)
+                database.bossDao().update(boss.copy(attemptsLeft = attempts))
+                if (attempts == 0) {
+                    queuedMessages.add("SYSTEM MESSAGE\nBOSS FAILED\n\nNo attempts remaining.")
+                }
+            }
     }
 
     private suspend fun persistPlayerProgress() {
@@ -504,11 +563,18 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_WORKOUT_EXERCISE_ID = "extra_workout_exercise_id"
+        private const val EXTRA_BOSS_ID = "extra_boss_id"
         private const val INVALID_ID = -1
 
         fun createIntent(context: Context, workoutExerciseId: Int): Intent {
             return Intent(context, ExerciseWorkoutActivity::class.java).apply {
                 putExtra(EXTRA_WORKOUT_EXERCISE_ID, workoutExerciseId)
+            }
+        }
+
+        fun createBossIntent(context: Context, workoutExerciseId: Int, bossId: Int): Intent {
+            return createIntent(context, workoutExerciseId).apply {
+                putExtra(EXTRA_BOSS_ID, bossId)
             }
         }
     }

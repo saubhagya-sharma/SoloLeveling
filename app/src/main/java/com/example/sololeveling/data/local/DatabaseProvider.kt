@@ -81,6 +81,54 @@ object DatabaseProvider {
         }
     }
 
+
+    private val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS inventory(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    type TEXT NOT NULL,
+                    createdDate TEXT NOT NULL,
+                    expiryDate TEXT NOT NULL
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS boss(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    exerciseId INTEGER NOT NULL,
+                    exerciseName TEXT NOT NULL,
+                    bossName TEXT NOT NULL,
+                    requiredWeight REAL,
+                    requiredReps INTEGER,
+                    requiredMinutes REAL,
+                    attemptsLeft INTEGER NOT NULL DEFAULT 3,
+                    createdDate TEXT NOT NULL,
+                    expiryDate TEXT NOT NULL,
+                    isCompleted INTEGER NOT NULL DEFAULT 0
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS trophy(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    bossName TEXT NOT NULL,
+                    exerciseName TEXT NOT NULL,
+                    dateEarned TEXT NOT NULL
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL("ALTER TABLE workout_session ADD COLUMN isBossSession INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE workout_session ADD COLUMN bossName TEXT")
+        }
+    }
+
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
@@ -91,7 +139,7 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "solo_leveling_db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 .build()
             INSTANCE = instance
             instance

@@ -11,12 +11,12 @@
         android:layout_height="wrap_content"
         android:textSize="14sp" />
 
-    <View
-        android:id="@+id/view_workout_dot"
-        android:layout_width="6dp"
-        android:layout_height="6dp"
+    <TextView
+        android:id="@+id/text_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:background="@android:color/transparent"
+        android:textSize="10sp"
         android:visibility="invisible" />
 
 </LinearLayout>

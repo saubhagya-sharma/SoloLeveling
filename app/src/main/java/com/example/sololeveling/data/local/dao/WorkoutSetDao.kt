@@ -23,6 +23,17 @@ interface WorkoutSetDao {
     @Query("SELECT MAX(setNumber) FROM workout_set WHERE workoutExerciseId = :workoutExerciseId")
     suspend fun getMaxSetNumber(workoutExerciseId: Int): Int?
 
+
+    @Query(
+        """
+        SELECT MAX(workout_set.minutes)
+        FROM workout_set
+        INNER JOIN workout_exercise ON workout_exercise.id = workout_set.workoutExerciseId
+        WHERE workout_exercise.exerciseId = :exerciseId
+        """
+    )
+    suspend fun getBestMinutesForExercise(exerciseId: Int): Double?
+
     @Query("DELETE FROM workout_set")
     suspend fun deleteAll()
 }

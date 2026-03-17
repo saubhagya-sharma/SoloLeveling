@@ -22,4 +22,7 @@ interface ExercisePrDao {
 
     @Query("SELECT MAX(prWeight) FROM exercise_pr")
     suspend fun getMaxPrWeight(): Double?
+
+    @Query("SELECT * FROM exercise_pr")
+    suspend fun getAll(): List<ExercisePrEntity>
 }
