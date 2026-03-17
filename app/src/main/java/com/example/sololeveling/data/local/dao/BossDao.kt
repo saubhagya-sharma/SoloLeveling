@@ -12,8 +12,11 @@ interface BossDao {
     @Insert
     suspend fun insert(boss: BossEntity): Long
 
-    @Query("SELECT * FROM boss WHERE isCompleted = 0 LIMIT 1")
+    @Query("SELECT * FROM boss WHERE isCompleted = 0 AND attemptsLeft > 0 LIMIT 1")
     suspend fun getActiveBoss(): BossEntity?
+
+    @Query("SELECT * FROM boss WHERE isCompleted = 0 AND attemptsLeft <= 0 LIMIT 1")
+    suspend fun getExhaustedBoss(): BossEntity?
 
     @Update
     suspend fun update(boss: BossEntity)
