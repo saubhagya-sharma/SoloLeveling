@@ -46,9 +46,7 @@ object BossManager {
                 )
             }
 
-            playerDao.updatePlayer(
-                player.copy(lastBossRewardWorkoutCount = totalWorkouts)
-            )
+            playerDao.updateLastBossRewardWorkoutCount(totalWorkouts)
         }
     }
 
