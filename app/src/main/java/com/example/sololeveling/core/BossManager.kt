@@ -27,10 +27,7 @@ object BossManager {
         val playerDao = database.playerDao()
         val player = playerDao.getPlayer() ?: return
 
-        val currentMilestone = totalWorkouts / WORKOUTS_PER_BOSS
-        val lastMilestone = player.lastBossRewardWorkoutCount / WORKOUTS_PER_BOSS
-
-        if (currentMilestone > lastMilestone) {
+        if (player.lastBossRewardWorkoutCount < totalWorkouts) {
             val inventoryDao = database.inventoryDao()
 
             if (inventoryDao.getItem(RUNE_TYPE) == null) {
