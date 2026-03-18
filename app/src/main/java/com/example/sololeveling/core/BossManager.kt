@@ -24,26 +24,31 @@ object BossManager {
     suspend fun maybeGiveRuneStone(database: AppDatabase, totalWorkouts: Int) {
         if (totalWorkouts <= 0) return
 
+        val currentMilestone = totalWorkouts / WORKOUTS_PER_BOSS
+        if (currentMilestone <= 0) return
+
         val playerDao = database.playerDao()
         val player = playerDao.getPlayer() ?: return
 
-        if (player.lastBossRewardWorkoutCount < totalWorkouts) {
-            val inventoryDao = database.inventoryDao()
+        if (player.lastBossRewardMilestone >= currentMilestone) return
 
-            if (inventoryDao.getItem(RUNE_TYPE) == null) {
-                val today = currentDate()
-                val expiry = addDays(today, 4)
+        val inventoryDao = database.inventoryDao()
+        val bossDao = database.bossDao()
+        val hasRuneStone = inventoryDao.getItem(RUNE_TYPE) != null
+        val hasActiveBoss = bossDao.getActiveBoss() != null
 
-                inventoryDao.insert(
-                    InventoryEntity(
-                        type = RUNE_TYPE,
-                        createdDate = today,
-                        expiryDate = expiry
-                    )
+        if (!hasRuneStone && !hasActiveBoss) {
+            val today = currentDate()
+            val expiry = addDays(today, 4)
+
+            inventoryDao.insert(
+                InventoryEntity(
+                    type = RUNE_TYPE,
+                    createdDate = today,
+                    expiryDate = expiry
                 )
-            }
-
-            playerDao.updateLastBossRewardWorkoutCount(totalWorkouts)
+            )
+            playerDao.updateLastBossRewardMilestone(currentMilestone)
         }
     }
 

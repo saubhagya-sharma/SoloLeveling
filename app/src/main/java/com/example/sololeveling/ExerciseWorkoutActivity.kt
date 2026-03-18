@@ -478,8 +478,6 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
         val boss = database.bossDao().getActiveBoss() ?: return
         val isSuccess = didDefeatBoss(boss, sets)
         if (isSuccess) {
-            database.bossDao().update(boss.copy(isCompleted = true))
-
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             val playerEntity = database.playerDao().getPlayer()
             if (playerEntity != null) {
@@ -494,16 +492,15 @@ class ExerciseWorkoutActivity : AppCompatActivity() {
                 )
             )
 
+            database.inventoryDao().deleteByType("RUNE_STONE")
+            database.bossDao().deleteActiveBoss()
+
             queuedMessages.add("SYSTEM MESSAGE\nBOSS DEFEATED\n${boss.bossName}\n\n+1 Cheat Meal\n+XP Boost")
         } else {
             val attempts = (boss.attemptsLeft - 1).coerceAtLeast(0)
             if (attempts <= 0) {
-                database.bossDao().deleteById(boss.id)
-
-                val rune = database.inventoryDao().getItem("RUNE_STONE")
-                if (rune != null) {
-                    database.inventoryDao().deleteById(rune.id)
-                }
+                database.inventoryDao().deleteByType("RUNE_STONE")
+                database.bossDao().deleteActiveBoss()
 
                 queuedMessages.add(
                     "SYSTEM MESSAGE\nBOSS FAILED\n\nNo attempts remaining.\nThe Rune Stone has shattered."
