@@ -48,10 +48,16 @@ class InventoryActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
         lifecycleScope.launch {
             BossManager.deleteExpiredItems(database)
-            if (database.inventoryDao().getItem("RUNE_STONE") == null) {
-                runeDescriptionText.text = "No rune stone available. Earn one to summon a boss workout."
+
+            val rune = database.inventoryDao().getItem("RUNE_STONE")
+
+            if (rune == null) {
+                runeDescriptionText.text =
+                    "No rune stone available. Earn one to summon a boss workout."
+
                 startBossButton.isEnabled = false
                 startBossButton.alpha = 0.55f
                 return@launch
@@ -64,6 +70,7 @@ class InventoryActivity : AppCompatActivity() {
 
             runeDescriptionText.text =
                 "Use rune stone to summon boss workout. Expires in $daysLeft day${if (daysLeft == 1L) "" else "s"}."
+
             startBossButton.isEnabled = true
             startBossButton.alpha = 1f
         }
