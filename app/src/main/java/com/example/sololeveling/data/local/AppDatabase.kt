@@ -45,7 +45,7 @@ import com.example.sololeveling.data.local.entity.TrophyEntity
         BossEntity::class,
         TrophyEntity::class
     ],
-    version = 9
+    version = 10
 )
 abstract class AppDatabase : RoomDatabase() {
 

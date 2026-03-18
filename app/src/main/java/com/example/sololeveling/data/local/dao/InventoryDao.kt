@@ -17,6 +17,9 @@ interface InventoryDao {
     @Query("DELETE FROM inventory WHERE id = :id")
     suspend fun deleteById(id: Int)
 
+    @Query("DELETE FROM inventory WHERE type = :type")
+    suspend fun deleteByType(type: String)
+
     @Query("DELETE FROM inventory WHERE expiryDate < :today")
     suspend fun deleteExpired(today: String)
 }
