@@ -20,11 +20,11 @@ interface PlayerDao {
     @Query(
         """
         UPDATE player
-        SET lastBossRewardWorkoutCount = :value
+        SET lastBossRewardMilestone = :value
         WHERE id = (SELECT id FROM player LIMIT 1)
         """
     )
-    suspend fun updateLastBossRewardWorkoutCount(value: Int)
+    suspend fun updateLastBossRewardMilestone(value: Int)
 
     @Query("DELETE FROM player")
     suspend fun deleteAll()

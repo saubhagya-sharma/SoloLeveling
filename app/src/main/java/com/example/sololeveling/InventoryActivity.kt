@@ -50,8 +50,7 @@ class InventoryActivity : AppCompatActivity() {
         super.onResume()
         lifecycleScope.launch {
             BossManager.deleteExpiredItems(database)
-            val rune = database.inventoryDao().getItem("RUNE_STONE")
-            if (rune == null) {
+            if (database.inventoryDao().getItem("RUNE_STONE") == null) {
                 runeDescriptionText.text = "No rune stone available. Earn one to summon a boss workout."
                 startBossButton.isEnabled = false
                 startBossButton.alpha = 0.55f
@@ -72,8 +71,7 @@ class InventoryActivity : AppCompatActivity() {
 
     private fun startBossBattle() {
         lifecycleScope.launch {
-            val rune = database.inventoryDao().getItem("RUNE_STONE")
-            if (rune == null) {
+            if (database.inventoryDao().getItem("RUNE_STONE") == null) {
                 Toast.makeText(this@InventoryActivity, "No Rune Stone available.", Toast.LENGTH_SHORT)
                     .show()
                 return@launch
@@ -88,8 +86,6 @@ class InventoryActivity : AppCompatActivity() {
                 ).show()
                 return@launch
             }
-
-            database.inventoryDao().deleteById(rune.id)
 
             startActivity(Intent(this@InventoryActivity, BossBattleActivity::class.java))
             finish()

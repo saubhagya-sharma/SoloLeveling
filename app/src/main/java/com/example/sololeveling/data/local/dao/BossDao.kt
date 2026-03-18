@@ -24,6 +24,9 @@ interface BossDao {
     @Query("DELETE FROM boss WHERE id = :id")
     suspend fun deleteById(id: Int)
 
+    @Query("DELETE FROM boss WHERE isCompleted = 0 AND attemptsLeft > 0")
+    suspend fun deleteActiveBoss()
+
     @Query("DELETE FROM boss WHERE expiryDate < :today")
     suspend fun deleteExpired(today: String)
 }
