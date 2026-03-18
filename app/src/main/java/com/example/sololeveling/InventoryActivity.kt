@@ -3,6 +3,8 @@ package com.example.sololeveling
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -17,36 +19,31 @@ class InventoryActivity : AppCompatActivity() {
 
     private val database by lazy { DatabaseProvider.getDatabase(this) }
 
-    private lateinit var runeStatusText: TextView
+    private lateinit var runeDescriptionText: TextView
     private lateinit var startBossButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inventory)
 
-        runeStatusText = findViewById(R.id.text_rune_status)
-        startBossButton = findViewById(R.id.button_start_boss_battle)
+        val container = findViewById<LinearLayout>(R.id.container_inventory_items)
 
+        val runeView = layoutInflater.inflate(R.layout.item_inventory_card, container, false)
+        runeView.elevation = 12f
+
+        runeView.findViewById<TextView>(R.id.text_item_name).text = "Rune Stone"
+        runeDescriptionText = runeView.findViewById(R.id.text_description)
+        runeDescriptionText.text = "Use rune stone to summon boss workout"
+
+        runeView.findViewById<ImageView>(R.id.icon_item).setImageResource(R.drawable.ic_rune)
+
+        startBossButton = runeView.findViewById(R.id.button_action)
+        startBossButton.text = "Start Boss Workout"
         startBossButton.setOnClickListener {
-            lifecycleScope.launch {
-                val rune = database.inventoryDao().getItem("RUNE_STONE")
-                if (rune == null) {
-                    Toast.makeText(this@InventoryActivity, "No Rune Stone available.", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                val boss = BossManager.generateBoss(database)
-                if (boss == null) {
-                    Toast.makeText(this@InventoryActivity, "No eligible exercises with PR yet.", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                database.inventoryDao().deleteById(rune.id)
-
-                startActivity(Intent(this@InventoryActivity, BossBattleActivity::class.java))
-                finish()
-            }
+            startBossBattle()
         }
+
+        container.addView(runeView)
     }
 
     override fun onResume() {
@@ -55,14 +52,47 @@ class InventoryActivity : AppCompatActivity() {
             BossManager.deleteExpiredItems(database)
             val rune = database.inventoryDao().getItem("RUNE_STONE")
             if (rune == null) {
-                runeStatusText.text = "Rune Stone: none"
+                runeDescriptionText.text = "No rune stone available. Earn one to summon a boss workout."
                 startBossButton.isEnabled = false
+                startBossButton.alpha = 0.55f
                 return@launch
             }
 
-            val daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.parse(rune.expiryDate)).coerceAtLeast(0)
-            runeStatusText.text = "Rune Stone ($daysLeft days left)"
+            val daysLeft = ChronoUnit.DAYS.between(
+                LocalDate.now(),
+                LocalDate.parse(rune.expiryDate)
+            ).coerceAtLeast(0)
+
+            runeDescriptionText.text =
+                "Use rune stone to summon boss workout. Expires in $daysLeft day${if (daysLeft == 1L) "" else "s"}."
             startBossButton.isEnabled = true
+            startBossButton.alpha = 1f
+        }
+    }
+
+    private fun startBossBattle() {
+        lifecycleScope.launch {
+            val rune = database.inventoryDao().getItem("RUNE_STONE")
+            if (rune == null) {
+                Toast.makeText(this@InventoryActivity, "No Rune Stone available.", Toast.LENGTH_SHORT)
+                    .show()
+                return@launch
+            }
+
+            val boss = BossManager.generateBoss(database)
+            if (boss == null) {
+                Toast.makeText(
+                    this@InventoryActivity,
+                    "No eligible exercises with PR yet.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+
+            database.inventoryDao().deleteById(rune.id)
+
+            startActivity(Intent(this@InventoryActivity, BossBattleActivity::class.java))
+            finish()
         }
     }
 }
