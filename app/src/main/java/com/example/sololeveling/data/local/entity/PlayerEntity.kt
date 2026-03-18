@@ -19,5 +19,6 @@ data class PlayerEntity(
     val lastLevelMilestone: Int = 0,
     val lastWorkoutMilestone: Int = 0,
     val lastQuestMilestone: Int = 0,
-    val lastBossRewardMilestone: Int = 0
+    val lastBossRewardMilestone: Int = 0,
+    val lastRuneRewardMilestone: Int = 0
 )
