@@ -2,7 +2,6 @@ package com.example.sololeveling.core
 
 import com.example.sololeveling.data.local.AppDatabase
 import com.example.sololeveling.data.local.entity.BossEntity
-import com.example.sololeveling.data.local.entity.PlayerEntity
 import com.example.sololeveling.data.local.entity.InventoryEntity
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -13,7 +12,6 @@ import kotlin.random.Random
 
 const val WORKOUTS_PER_BOSS = 1
 const val BOSS_XP_MULTIPLIER = 1.5
-private const val RUNE_TYPE = "RUNE_STONE"
 
 object BossManager {
 
@@ -23,28 +21,33 @@ object BossManager {
     }
 
     suspend fun maybeGiveRuneStone(database: AppDatabase, totalWorkouts: Int) {
-        val milestone = totalWorkouts / WORKOUTS_PER_BOSS
-        if (milestone <= 0) return
+        if (totalWorkouts <= 0) return
 
         val playerDao = database.playerDao()
         val player = playerDao.getPlayer() ?: return
-        if (milestone <= player.lastRuneRewardMilestone) return
 
-        val inventoryDao = database.inventoryDao()
-        if (inventoryDao.getItem(RUNE_TYPE) == null) {
-            val today = currentDate()
-            val expiry = addDays(today, 4)
+        val milestone = totalWorkouts / WORKOUTS_PER_BOSS
 
-            inventoryDao.insert(
-                InventoryEntity(
-                    type = RUNE_TYPE,
-                    createdDate = today,
-                    expiryDate = expiry
-                )
-            )
+        if (milestone <= player.lastRuneRewardMilestone) {
+            return
         }
 
-        playerDao.updatePlayer(player.withLastRuneRewardMilestone(milestone))
+        val inventoryDao = database.inventoryDao()
+
+        val today = currentDate()
+        val expiry = addDays(today, 4)
+
+        inventoryDao.insert(
+            InventoryEntity(
+                type = "RUNE_STONE",
+                createdDate = today,
+                expiryDate = expiry
+            )
+        )
+
+        playerDao.updatePlayer(
+            player.copy(lastRuneRewardMilestone = milestone)
+        )
     }
 
     fun currentDate(): String =
@@ -164,5 +167,3 @@ object BossManager {
         val requiredMinutes: Double?
     )
 }
-private fun PlayerEntity.withLastRuneRewardMilestone(milestone: Int): PlayerEntity =
-    copy(lastRuneRewardMilestone = milestone)
