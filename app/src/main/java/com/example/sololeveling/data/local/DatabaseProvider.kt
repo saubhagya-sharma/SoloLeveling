@@ -132,20 +132,18 @@ object DatabaseProvider {
 
     private val MIGRATION_8_9 = object : Migration(8, 9) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("ALTER TABLE player ADD COLUMN lastBossRewardWorkoutCount INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE player ADD COLUMN lastBossRewardMilestone INTEGER NOT NULL DEFAULT 0")
         }
     }
 
     private val MIGRATION_9_10 = object : Migration(9, 10) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("ALTER TABLE player ADD COLUMN lastBossRewardMilestone INTEGER NOT NULL DEFAULT 0")
-            db.execSQL("UPDATE player SET lastBossRewardMilestone = lastBossRewardWorkoutCount / 1")
+            db.execSQL("ALTER TABLE player ADD COLUMN lastRuneRewardMilestone INTEGER NOT NULL DEFAULT 0")
         }
     }
 
     private val MIGRATION_10_11 = object : Migration(10, 11) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("ALTER TABLE player ADD COLUMN lastRuneRewardMilestone INTEGER NOT NULL DEFAULT 0")
         }
     }
 
