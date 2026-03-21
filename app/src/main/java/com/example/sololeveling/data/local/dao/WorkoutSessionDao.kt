@@ -10,6 +10,9 @@ interface WorkoutSessionDao {
     @Query("SELECT * FROM workout_session WHERE date = :date LIMIT 1")
     suspend fun getSessionByDate(date: String): WorkoutSessionEntity?
 
+    @Query("SELECT * FROM workout_session WHERE id = :sessionId LIMIT 1")
+    suspend fun getSessionById(sessionId: Int): WorkoutSessionEntity?
+
     @Query(
         """
         SELECT * FROM workout_session
