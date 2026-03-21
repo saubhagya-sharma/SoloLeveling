@@ -27,6 +27,18 @@ interface WorkoutSessionDao {
 
     @Query(
         """
+        SELECT * FROM workout_session
+        WHERE date = :date
+        AND id IN (
+            SELECT sessionId FROM workout_exercise
+        )
+        ORDER BY isBossSession ASC
+        """
+    )
+    suspend fun getAllSessionsByDateWithExercises(date: String): List<WorkoutSessionEntity>
+
+    @Query(
+        """
         SELECT workout_session.date
         FROM workout_session
         INNER JOIN workout_exercise ON workout_exercise.sessionId = workout_session.id
