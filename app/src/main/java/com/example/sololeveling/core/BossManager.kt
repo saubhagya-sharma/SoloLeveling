@@ -23,20 +23,32 @@ object BossManager {
     suspend fun maybeGiveRuneStone(database: AppDatabase, totalWorkouts: Int) {
         if (totalWorkouts <= 0) return
 
+        val inventoryDao = database.inventoryDao()
+        val bossDao = database.bossDao()
+
+        // 1. GATEKEEPER: Don't give a stone if one exists or a boss is active
+        val existingStone = inventoryDao.getItem("RUNE_STONE")
+        val activeBoss = bossDao.getActiveBoss()
+
+        if (existingStone != null || activeBoss != null) {
+            return
+        }
+
         val playerDao = database.playerDao()
         val player = playerDao.getPlayer() ?: return
 
+        // Calculate milestone based on the count passed in
         val milestone = totalWorkouts / WORKOUTS_PER_BOSS
 
+        // 2. MILESTONE CHECK: Don't reward for a milestone we've already hit
         if (milestone <= player.lastRuneRewardMilestone) {
             return
         }
 
-        val inventoryDao = database.inventoryDao()
-
         val today = currentDate()
         val expiry = addDays(today, 4)
 
+        // 3. REWARD: Grant the stone
         inventoryDao.insert(
             InventoryEntity(
                 type = "RUNE_STONE",
@@ -45,6 +57,7 @@ object BossManager {
             )
         )
 
+        // 4. PERSIST: Save the milestone so it's "locked"
         playerDao.updatePlayer(
             player.copy(lastRuneRewardMilestone = milestone)
         )

@@ -170,9 +170,14 @@ class DashboardActivity : AppCompatActivity() {
         maybeShowDisciplineAchievement()
 
         lifecycleScope.launch {
+            // Deleted the 300ms delay as the logic is now state-aware
             BossManager.deleteExpiredItems(database)
-            val totalWorkouts = database.workoutSessionDao().countCompletedWorkouts()
+
+            // Using the precise count of normal workouts
+            val totalWorkouts = database.workoutSessionDao().countNormalCompletedWorkouts()
+
             BossManager.maybeGiveRuneStone(database, totalWorkouts)
+
             AchievementManager.checkAchievements(database)
             refreshUi()
         }

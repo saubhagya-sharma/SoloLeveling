@@ -58,6 +58,16 @@ interface WorkoutSessionDao {
 
     @Query("DELETE FROM workout_session")
     suspend fun deleteAll()
+
+    @Query(
+        """
+    SELECT COUNT(DISTINCT workout_session.id)
+    FROM workout_session
+    INNER JOIN workout_exercise ON workout_exercise.sessionId = workout_session.id
+    WHERE workout_session.isBossSession = 0
+    """
+    )
+    suspend fun countNormalCompletedWorkouts(): Int
 }
 
 data class WorkoutDateEntry(
