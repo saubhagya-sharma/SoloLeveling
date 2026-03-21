@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sololeveling.core.DailyQuestType
 import com.example.sololeveling.data.local.DatabaseProvider
-import com.example.sololeveling.data.local.entity.WorkoutSessionEntity
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -27,9 +26,8 @@ class SessionDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_detail)
 
-        val sessionId = intent.getIntExtra(EXTRA_SESSION_ID, INVALID_ID)
         val date = intent.getStringExtra(EXTRA_DATE).orEmpty()
-        if (sessionId == INVALID_ID || date.isBlank()) {
+        if (date.isBlank()) {
             finish()
             return
         }
@@ -43,39 +41,49 @@ class SessionDetailActivity : AppCompatActivity() {
         exercisesRecyclerView.adapter = adapter
 
         lifecycleScope.launch {
-            val session = database.workoutSessionDao().getSessionById(sessionId)
-            dateTitleTextView.text = buildSessionTitle(session, date)
-            loadSessionDetails(sessionId, date, session)
+            dateTitleTextView.text = "WORKOUT HISTORY - ${formatDateTitle(date)}"
+            loadAllSessions(date)
         }
     }
 
-    private suspend fun loadSessionDetails(sessionId: Int, date: String, session: WorkoutSessionEntity?) {
-        val exerciseDetails = database.workoutExerciseDao().getSessionExerciseDetails(sessionId)
+    private suspend fun loadAllSessions(date: String) {
+        val sessions = database.workoutSessionDao().getAllSessionsByDateWithExercises(date)
 
         val items = mutableListOf<SessionDetailListItem>()
+        var totalExercises = 0
         var totalSets = 0
         var totalVolume = 0.0
 
-        exerciseDetails.forEach { exerciseDetail ->
-            val exerciseTitle = if (session?.isBossSession == true) {
-                "🔴 ${exerciseDetail.exerciseName}"
+        sessions.forEach { session ->
+            val headerTitle = if (session.isBossSession && !session.bossName.isNullOrBlank()) {
+                "🔴 BOSS: ${session.bossName}"
             } else {
-                exerciseDetail.exerciseName
+                "WORKOUT"
             }
-            items.add(SessionDetailListItem.ExerciseHeader(exerciseTitle))
-            val sets = database.workoutSetDao().getByWorkoutExerciseId(exerciseDetail.workoutExerciseId)
-            sets.forEach { set ->
-                items.add(
-                    SessionDetailListItem.SetRow(
-                        reps = set.reps,
-                        weight = set.weight,
-                        minutes = set.minutes
-                    )
-                )
 
-                totalSets += 1
-                if (!exerciseDetail.isTimeBased) {
-                    if (set.weight != null && set.reps != null) {
+            items.add(SessionDetailListItem.ExerciseHeader(headerTitle))
+
+            val exerciseDetails = database.workoutExerciseDao()
+                .getSessionExerciseDetails(session.id)
+            totalExercises += exerciseDetails.size
+
+            exerciseDetails.forEach { exerciseDetail ->
+                items.add(SessionDetailListItem.ExerciseHeader(exerciseDetail.exerciseName))
+
+                val sets = database.workoutSetDao()
+                    .getByWorkoutExerciseId(exerciseDetail.workoutExerciseId)
+
+                sets.forEach { set ->
+                    items.add(
+                        SessionDetailListItem.SetRow(
+                            reps = set.reps,
+                            weight = set.weight,
+                            minutes = set.minutes
+                        )
+                    )
+
+                    totalSets += 1
+                    if (!exerciseDetail.isTimeBased && set.weight != null && set.reps != null) {
                         totalVolume += set.weight * set.reps
                     }
                 }
@@ -83,7 +91,7 @@ class SessionDetailActivity : AppCompatActivity() {
         }
 
         adapter.submitItems(items)
-        summaryTextView.text = "Exercises: ${exerciseDetails.size}\nSets: $totalSets\nVolume: ${totalVolume.toInt()} kg"
+        summaryTextView.text = "Exercises: $totalExercises\nSets: $totalSets\nVolume: ${totalVolume.toInt()} kg"
 
         val dailyQuests = database.dailyQuestDao().getQuestsForDate(date)
         dailyQuestsTextView.text = if (dailyQuests.isEmpty()) {
@@ -93,14 +101,6 @@ class SessionDetailActivity : AppCompatActivity() {
                 val icon = if (quest.completed) "✓" else "✗"
                 "$icon ${DailyQuestType.fromName(quest.questType).displayText}"
             }
-        }
-    }
-
-    private fun buildSessionTitle(session: WorkoutSessionEntity?, date: String): String {
-        return if (session?.isBossSession == true && !session.bossName.isNullOrBlank()) {
-            "🔴 BOSS: ${session.bossName} - ${formatDateTitle(date)}"
-        } else {
-            "WORKOUT - ${formatDateTitle(date)}"
         }
     }
 
@@ -114,8 +114,6 @@ class SessionDetailActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val EXTRA_SESSION_ID = "extra_session_id"
         const val EXTRA_DATE = "extra_date"
-        private const val INVALID_ID = -1
     }
 }

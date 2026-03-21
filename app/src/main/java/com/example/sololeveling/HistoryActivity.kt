@@ -102,14 +102,13 @@ class HistoryActivity : AppCompatActivity() {
                 if (!::day.isInitialized || day.position != DayPosition.MonthDate) return@setOnClickListener
                 val selectedDate = day.date.format(dateFormatter)
                 lifecycleScope.launch {
-                    val session = database.workoutSessionDao()
-                        .getSessionByDateWithExercises(selectedDate)
+                    val sessions = database.workoutSessionDao()
+                        .getAllSessionsByDateWithExercises(selectedDate)
 
-                    if (session != null) {
+                    if (sessions.isNotEmpty()) {
                         startActivity(
                             Intent(this@HistoryActivity, SessionDetailActivity::class.java).apply {
-                                putExtra(SessionDetailActivity.EXTRA_SESSION_ID, session.id)
-                                putExtra(SessionDetailActivity.EXTRA_DATE, session.date)
+                                putExtra(SessionDetailActivity.EXTRA_DATE, selectedDate)
                             }
                         )
                     }
